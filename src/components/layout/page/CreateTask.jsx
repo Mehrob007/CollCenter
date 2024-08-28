@@ -4,14 +4,12 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Bounce } from 'react-toastify';
 import { Select, Space } from 'antd';
-import axios from 'axios';
 import apiClient from '../../../utils/api';
 import { getToken } from '../../store/StoreGetToken';
 
 export default function CreateTask() {
     const [formData, setFormData] = useState({
         to: '',
-        subject: '',
         description: '',
         startDate: '',
         deadline: '',
@@ -20,28 +18,33 @@ export default function CreateTask() {
         idStatus: '',
         interactionId: ''
     });
-    const [options, setOptions] = useState([])
+    const [options, setOptions] = useState([]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
-    const [fetching, setFetching] = useState(true);
-    const { refreshAccessToken } = getToken()
+    const [fetching, setFetching] = useState(false);
+    const { refreshAccessToken } = getToken();
 
-    function handleChange(e) {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData((prev) => ({
+            ...prev,
             [name]: value
-        });
-    }
+        }));
+    };
+    useEffect(() => {
+        refreshAccessToken()
+    }, [])
 
-
-    function validateForm() {
-        const { to, subject, description, startDate, deadline } = formData;
+    const validateForm = () => {
+        const { to, description, startDate, deadline } = formData;
         const today = new Date().toISOString().split('T')[0];
-
-        if (!to || !subject || !description || !startDate || !deadline) {
+    
+        console.log('Form Data:', formData);
+        console.log('Today:', today);
+    
+        if (!to || !description || !startDate || !deadline) {
             toast.error('Заполните все поля', {
                 position: "top-right",
                 autoClose: 5000,
@@ -55,7 +58,7 @@ export default function CreateTask() {
             });
             return false;
         }
-
+    
         if (startDate < today) {
             toast.error('Дата начала не может быть в прошлом', {
                 position: "top-right",
@@ -70,7 +73,7 @@ export default function CreateTask() {
             });
             return false;
         }
-
+    
         if (deadline < today) {
             toast.error('Дедлайн не может быть в прошлом', {
                 position: "top-right",
@@ -85,7 +88,7 @@ export default function CreateTask() {
             });
             return false;
         }
-
+    
         if (startDate > deadline) {
             toast.error('Дата начала не может быть позже дедлайна', {
                 position: "top-right",
@@ -100,17 +103,23 @@ export default function CreateTask() {
             });
             return false;
         }
-
+    
         return true;
-    }
-
+    };
+    
 
     const ApplicationTaskPriority = [
         { label: 'Низкий', value: 0 },
         { label: 'Средний', value: 1 },
         { label: 'Высокий', value: 2 }
-    ]
-    let arrObjactInteractionId;
+    ];
+    const arrObjactInteractionId = [
+        { label: '1', value: 1 },
+        { label: '2', value: 2 },
+        { label: '3', value: 3 },
+        { label: '4', value: 4 },
+        { label: '5', value: 5 },
+    ];
 
     const ApplicationTaskStatus = [
         { label: 'Отложено', value: 0 },
@@ -118,9 +127,9 @@ export default function CreateTask() {
         { label: 'Завершено', value: 2 },
         { label: 'В процессе', value: 3 },
         { label: 'Не начато', value: 4 },
-    ]
+    ];
 
-    async function fetchData() {
+    const fetchData = async () => {
         try {
             const token = localStorage.getItem('accessToken');
             setLoading(true);
@@ -130,35 +139,45 @@ export default function CreateTask() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                const newArr = response.data.users.map((el, i) => {
-                    return { label: el.name, value: el.id }
-                })
-                setOptions(newArr)
+                const newArr = response.data.users.map((el) => ({ label: el.name, value: el.id }));
+                console.log(response.data);
+
+                setOptions(newArr);
                 if (Array.isArray(response.data.users)) {
                     setData((prev) => [...prev, ...response.data.users]);
                 } else {
                     console.error('Ожидался массив, но получен другой тип данных:', response.data.users);
                 }
-
-                setCurrentPage((el) => el + 1);
+                setCurrentPage((prev) => prev + 1);
                 setTotalCount(response.headers['x-total-count']);
             } else {
                 console.error('Access token отсутствует');
             }
-
         } catch (err) {
             console.error('Ошибка при выполнении запроса:', err);
+            toast.error('Ошибка при загрузке данных', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
         } finally {
             setLoading(false);
             setFetching(false);
         }
-    }
-    console.log(formData.startDate);
+    }; useEffect(() => {
+        fetchData()
+    }, [])
+
 
     const scrollHandler = (e) => {
-        console.log('scroll');
         const target = e.target;
-        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && data.length < totalCount) {
+        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && data.length < totalCount && !fetching) {
             setFetching(true);
         }
     };
@@ -168,26 +187,46 @@ export default function CreateTask() {
             fetchData();
         }
     }, [fetching]);
-    // console.log(`api/tasks/?subject=${formData.to}&startDate=${formData.startDate.toISOString()}&dueDate=${formData.deadline.toISOString()}&priority=${formData.idPreoritet}&description=${formData.description}&status=${formData.idStatus}${formData.idUsers.map(el => `&usersId=${el}`).join('')}interactionId=${formData.interactionId}`);
-    
 
-    async function funSendLetter(el) {
-        el.preventDefault();
-        let token = localStorage.getItem('accessToken');
-        let startDate = new Date(formData.startDate)
-        let deadline = new Date(formData.deadline)
-        const res = await apiClient.post(`api/tasks/?subject=${formData.to}&startDate=${startDate.toISOString()}&dueDate=${deadline.toISOString()}&priority=${formData.idPreoritet}&description=${formData.description}&status=${formData.idStatus}${formData.idUsers.map(el => `&usersId=${el}`).join('')}interactionId=${formData.interactionId}`,
-            null, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        console.log(res);
+    const funSendLetter = async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
 
-        if (validateForm()) {
-            console.log('Form submitted successfully');
+        const token = localStorage.getItem('accessToken');
+        try {
+            const res = await apiClient.post(`api/tasks/?subject=${formData.to}&startDate=${formData.startDate}T00:00:00Z&dueDate=${formData.deadline}T00:00:00Z&priority=${formData.idPreoritet}&description=${formData.description}&status=${formData.idStatus}${formData.idUsers.map(el => `&usersId=${el}`).join('')}&interactionId=${formData.interactionId}`,
+                null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log(res);
+            toast.success('Задача успешно создана', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        } catch (err) {
+            console.error('Ошибка при отправке задачи:', err);
+            toast.error('Ошибка при отправке задачи', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
         }
-    }
+    };
 
     return (
         <div className='WriteLetter'>
@@ -210,69 +249,60 @@ export default function CreateTask() {
                         style={{ width: '100%', height: '50px' }}
                         placeholder="Исполнитель"
                         onChange={(value) => {
-                            setFormData({
-                                ...formData,
+                            setFormData((prev) => ({
+                                ...prev,
                                 idUsers: value
-                            })
-                        }
-                        }
+                            }));
+                        }}
                         options={!loading && options}
-
                     />
                 </Space>
                 <Select
-                        showSearch
-                        style={{
-                            width: '100%',
-                        }}
-                        placeholder="Приоритет"
-                        optionFilterProp="label"
-                        filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                        }
-                        onChange={(value) => {
-                            setFormData({
-                                ...formData,
-                                interactionId: value
-                            })
-                        }}
-                        options={arrObjactInteractionId}
-                    />
+                    showSearch
+                    style={{ width: '100%' }}
+                    placeholder="Приоритет"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    onChange={(value) => {
+                        setFormData((prev) => ({
+                            ...prev,
+                            interactionId: value
+                        }));
+                    }}
+                    options={arrObjactInteractionId}
+                />
                 <div className='StatusPrioritet'>
                     <Select
                         showSearch
-                        style={{
-                            width: 220,
-                        }}
+                        style={{ width: 220 }}
                         placeholder="Приоритет"
                         optionFilterProp="label"
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                         }
                         onChange={(value) => {
-                            setFormData({
-                                ...formData,
+                            setFormData((prev) => ({
+                                ...prev,
                                 idPreoritet: value
-                            })
+                            }));
                         }}
                         options={ApplicationTaskPriority}
                     />
-                    
                     <Select
                         showSearch
-                        style={{
-                            width: 220,
-                        }}
+                        style={{ width: 220 }}
                         placeholder="Статус"
                         optionFilterProp="label"
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                         }
                         onChange={(value) => {
-                            setFormData({
-                                ...formData,
+                            setFormData((prev) => ({
+                                ...prev,
                                 idStatus: value
-                            })
+                            }));
                         }}
                         options={ApplicationTaskStatus}
                     />

@@ -7,6 +7,8 @@ import cloasX from '../../../assets/icon/x.svg'
 import axios from 'axios'
 import { getToken } from '../../store/StoreGetToken'
 import apiClient from '../../../utils/api'
+import { error } from 'jquery'
+import { useNavigate } from 'react-router-dom'
 
 export default function Сontacts() {
   const [open, setOpen] = useState(false)
@@ -22,12 +24,117 @@ export default function Сontacts() {
     school: 'СОУ 8',
     role: 'Родитель',
   });
+  const [dataPars, setdataPars] = useState([
+    {
+      "id": 0,
+      "name": "string",
+      "surname": "string",
+      "phone": "string",
+      "middleName": "string",
+      "email": "string",
+      "description": "string",
+      "fields": [
+        {
+          "id": 0,
+          "name": "string",
+          "value": "string"
+        }
+      ],
+      "creator": {
+        "id": 0,
+        "username": "string",
+        "role": "Operator",
+        "name": "string",
+        "surname": "string",
+        "extensionNumber": 0,
+        "createdAt": "string"
+      },
+      "createdAt": "string"
+    },
+    {
+      "id": 0,
+      "name": "string",
+      "surname": "string",
+      "phone": "string",
+      "middleName": "string",
+      "email": "string",
+      "description": "string",
+      "fields": [
+        {
+          "id": 0,
+          "name": "string",
+          "value": "string"
+        }
+      ],
+      "creator": {
+        "id": 0,
+        "username": "string",
+        "role": "Operator",
+        "name": "string",
+        "surname": "string",
+        "extensionNumber": 0,
+        "createdAt": "string"
+      },
+      "createdAt": "string"
+    }
+  ]);
+  const [dataModal, setDataModal] = useState({});
+  const navigate = useNavigate()
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [fetching, setFetching] = useState(true);
 
-  const calling = () => {
-    console.log('calling');
+  const createContacts = () => {
+    let token = localStorage.getItem('accessToken')
+    console.log(formData);
+
+    try {
+      const res = apiClient.post(`api/contacts/link`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+
+      })
+      console.log(res);
+
+    } catch (e) {
+      console.error(e);
+    }
   }
-  const noCalling = () => {
-    console.log('noCalling');
+
+  const getModalDataContact = async (dataModalID) => {
+    let token = localStorage.getItem('accessToken')
+    try {
+      const res = apiClient.get(`api/contacts/?id=${dataModalID}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+
+      })
+      // setDataModal(res)
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const calling = (tellNumber) => {
+    console.log('calling');
+    navigate(`/${tellNumber}`)
+  }
+  const noCalling = async (iDDelete) => {
+    let token = localStorage.getItem('accessToken')
+    try {
+      const res = await apiClient.delete(`api/contacts/?id=${iDDelete}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      console.log(res);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   const handleChange = (e) => {
@@ -38,15 +145,10 @@ export default function Сontacts() {
     })
   }
 
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [fetching, setFetching] = useState(true);
 
   async function fetchData() {
     try {
-      const token = localStorage.getItem('accessToken');
+      let token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
         const response = await apiClient.get(`/api/contacts/all?pagination.limit=5&pagination.page=${currentPage}`, {
@@ -89,16 +191,16 @@ export default function Сontacts() {
   }, [fetching]);
   axios.interceptors.request.use(
     async (config) => {
-        let token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
+      let token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+      return config;
     },
     (error) => {
-        return Promise.reject(error);
+      return Promise.reject(error);
     }
-);
+  );
 
   axios.interceptors.response.use(
     (response) => {
@@ -118,6 +220,10 @@ export default function Сontacts() {
       return Promise.reject(error);
     }
   );
+  const OpneModalInfo = (id) => {
+    setOpen(true)
+    getModalDataContact(id)
+  }
   // console.log(data);
   return (<>
     <Modal
@@ -127,7 +233,7 @@ export default function Сontacts() {
         <>
           <div className='btnCallinBack'>
 
-            <Button onClick={calling} style={{ background: '#0CD939', color: '#fff' }} className='callinBackContacts'>
+            <Button onClick={() => calling({/*dataModal.phone */ } || '000000')} style={{ background: '#0CD939', color: '#fff' }} className='callinBackContacts'>
               <img src={miniCall} alt="iconCollBtn" />
               <span>Позвонить</span>
             </Button>
@@ -143,7 +249,11 @@ export default function Сontacts() {
         <img src={cloasX} alt="cloasX" />
       </button>
       <div className='box-modal-create-elements'>
-        <div className='bg-ccc'></div>
+        <div className='bg-ccc'>
+          {false || 'A'} {/*dataModal.name[0] */}
+        </div>
+        <h2>{false || 'Name'}</h2>{/*dataModal.name */}
+        <p>{false || '+992 000-0000-00'}</p>{/*dataModal.phone */}
         <h1 onClick={() => {
           setOpen(false)
           setOpenCreate(true)
@@ -156,7 +266,7 @@ export default function Сontacts() {
       footer={(_, { OkBtn, CancelBtn }) => (
         <>
           <div className='btnCallinBack'>
-            <Button onClick={calling} style={{ background: '#2EA0FF', color: '#fff' }} className='callinBackContacts'>
+            <Button onClick={() => createContacts()} style={{ background: '#2EA0FF', color: '#fff' }} className='callinBackContacts'>
               <span>Сохранить</span>
             </Button>
             <Button onClick={() => setOpenCreate(false)} style={{ background: '#2ea1ff48', color: '#2EA0FF' }} className='callinBackContacts'>
@@ -172,23 +282,23 @@ export default function Сontacts() {
 
       <div className="box-modal-createing-elements">
         <Input
-          value={ formData.firstName ?? ''}
+          value={formData.firstName ?? ''}
           onChange={handleChange}
           placeholder="Имя" />
         <Input
-          value={ formData.lastName ?? ''}
+          value={formData.lastName ?? ''}
           onChange={handleChange}
           placeholder="Фамилия" />
         <Input
-          value={ formData.middleName ?? ''}
+          value={formData.middleName ?? ''}
           onChange={handleChange}
           placeholder="Отчества" />
         <Input
-          value={ formData.phone ?? ''}
+          value={formData.phone ?? ''}
           onChange={handleChange}
           placeholder="Телефон" />
         <Input
-          value={ formData.email ?? ''}
+          value={formData.email ?? ''}
           onChange={handleChange}
           placeholder="E-mail" />
         <select value={formData.district ?? ''} onChange={handleChange}>
@@ -212,7 +322,23 @@ export default function Сontacts() {
         <input className='inputContentSearch' placeholder='Поиск' type="text" />
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-          {loading ? (<p>Loading...</p>) : ''}
+        {loading ? (<p>Loading...</p>) : dataPars.map((prev, i) => (
+          <div key={i} className="liMess" >
+            <div>
+              <input type="text" value={prev.name} onChange={() => { }} />
+            </div>
+            <div>
+              <input type="text" value={prev.phone} onChange={() => { }} />
+            </div>
+            <svg style={{ cursor: 'pointer' }} onClick={() => OpneModalInfo(prev.id)} width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="15" cy="15" r="15" fill="#279DFF" />
+              <circle cx="8" cy="15" r="2.5" fill="#F5F5F5" />
+              <circle cx="15" cy="15" r="2.5" fill="#F5F5F5" />
+              <circle cx="22" cy="15" r="2.5" fill="#F5F5F5" />
+            </svg>
+
+          </div>
+        ))}
       </div>
     </div>
   </>)

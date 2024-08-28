@@ -3,7 +3,6 @@ import apiClient from "../../utils/api";
 
 export const getToken = create((set, get) => ({
     refreshAccessToken: async () => {
-        localStorage.removeItem('accessToken')
         try {
             const refreshToken = localStorage.getItem('refreshToken');
             const res = await apiClient.post(`api/auth/refreshToken?refreshToken=${refreshToken}`);

@@ -11,6 +11,251 @@ export default function Task() {
   const [totalCount, setTotalCount] = useState(0);
   const [fetching, setFetching] = useState(true);
   const { refreshAccessToken } = getToken()
+  const [dataParsin, setDataParsing] = useState([
+    {
+      "id": 0,
+      "subject": "string",
+      "startDate": "string",
+      "dueDate": "string",
+      "priority": 0,
+      "description": "string",
+      "status": 0,
+      "users": [
+        {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        }
+      ],
+      "creator": {
+        "id": 0,
+        "username": "string",
+        "role": "Operator",
+        "name": "string",
+        "surname": "string",
+        "extensionNumber": 0,
+        "createdAt": "string"
+      },
+      "interaction": {
+        "id": 0,
+        "description": "string",
+        "fields": [
+          {
+            "id": 0,
+            "name": "string",
+            "value": "string"
+          }
+        ],
+        "company": {
+          "id": 0,
+          "name": "string",
+          "sipNumber": "string"
+        },
+        "contact": {
+          "id": 0,
+          "name": "string",
+          "surname": "string",
+          "phone": "string",
+          "middleName": "string",
+          "email": "string",
+          "description": "string",
+          "fields": [
+            {
+              "id": 0,
+              "name": "string",
+              "value": "string"
+            }
+          ],
+          "creator": {
+            "id": 0,
+            "username": "string",
+            "role": "Operator",
+            "name": "string",
+            "surname": "string",
+            "extensionNumber": 0,
+            "createdAt": "string"
+          },
+          "createdAt": "string"
+        },
+        "user": {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        },
+        "interactionDate": "string"
+      }
+    },
+    {
+      "id": 0,
+      "subject": "string",
+      "startDate": "string",
+      "dueDate": "string",
+      "priority": 0,
+      "description": "string",
+      "status": 0,
+      "users": [
+        {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        }
+      ],
+      "creator": {
+        "id": 0,
+        "username": "string",
+        "role": "Operator",
+        "name": "string",
+        "surname": "string",
+        "extensionNumber": 0,
+        "createdAt": "string"
+      },
+      "interaction": {
+        "id": 0,
+        "description": "string",
+        "fields": [
+          {
+            "id": 0,
+            "name": "string",
+            "value": "string"
+          }
+        ],
+        "company": {
+          "id": 0,
+          "name": "string",
+          "sipNumber": "string"
+        },
+        "contact": {
+          "id": 0,
+          "name": "string",
+          "surname": "string",
+          "phone": "string",
+          "middleName": "string",
+          "email": "string",
+          "description": "string",
+          "fields": [
+            {
+              "id": 0,
+              "name": "string",
+              "value": "string"
+            }
+          ],
+          "creator": {
+            "id": 0,
+            "username": "string",
+            "role": "Operator",
+            "name": "string",
+            "surname": "string",
+            "extensionNumber": 0,
+            "createdAt": "string"
+          },
+          "createdAt": "string"
+        },
+        "user": {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        },
+        "interactionDate": "string"
+      }
+    },
+    {
+      "id": 0,
+      "subject": "string",
+      "startDate": "string",
+      "dueDate": "string",
+      "priority": 0,
+      "description": "string",
+      "status": 0,
+      "users": [
+        {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        }
+      ],
+      "creator": {
+        "id": 0,
+        "username": "string",
+        "role": "Operator",
+        "name": "string",
+        "surname": "string",
+        "extensionNumber": 0,
+        "createdAt": "string"
+      },
+      "interaction": {
+        "id": 0,
+        "description": "string",
+        "fields": [
+          {
+            "id": 0,
+            "name": "string",
+            "value": "string"
+          }
+        ],
+        "company": {
+          "id": 0,
+          "name": "string",
+          "sipNumber": "string"
+        },
+        "contact": {
+          "id": 0,
+          "name": "string",
+          "surname": "string",
+          "phone": "string",
+          "middleName": "string",
+          "email": "string",
+          "description": "string",
+          "fields": [
+            {
+              "id": 0,
+              "name": "string",
+              "value": "string"
+            }
+          ],
+          "creator": {
+            "id": 0,
+            "username": "string",
+            "role": "Operator",
+            "name": "string",
+            "surname": "string",
+            "extensionNumber": 0,
+            "createdAt": "string"
+          },
+          "createdAt": "string"
+        },
+        "user": {
+          "id": 0,
+          "username": "string",
+          "role": "Operator",
+          "name": "string",
+          "surname": "string",
+          "extensionNumber": 0,
+          "createdAt": "string"
+        },
+        "interactionDate": "string"
+      }
+    }
+  ])
 
   async function fetchData() {
     try {
@@ -106,7 +351,17 @@ axios.interceptors.request.use(
         <Link to='/create-task' className='linkMess'>Создать задачу</Link>
       </div>
       <div onScroll={scrollHandler} className="ulLiDataMess">
-        {loading ? <p>loading...</p> : <>{/* Render your data here */}</>}
+        {loading ? <p>loading...</p> : dataParsin.map((prev, i) => 
+           <div key={i} className='itemsMessContent'>
+            <div>
+              <div></div>
+              <input type="text" onChange={(prev) => prev.target.value = prev.subject} value={prev.subject ?? ''} />
+              <input type="text" onChange={(prev) => prev.target.value = prev.body} value={prev.creator.name ?? ''} />
+              <input type="text" onChange={(prev) => prev.target.value = prev.string} value={prev.startDate ?? ''} />
+              <input type="text" onChange={(prev) => prev.target.value = prev.string} value={prev.dueDate ?? ''} />
+            </div>
+            <h1>{prev.time}</h1>
+        </div>)}
       </div>
     </div>
   );

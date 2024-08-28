@@ -9,21 +9,21 @@ export default function Mess() {
   const { refreshAccessToken } = getToken()
   const [dataParsin, setDataParsing] = useState([
     {
-      name: 'Jackelyn Perra',
-      tell: '000 0000 00',
-      message: 'Hi. Ashley Found ',
+      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
+      body: '000 0000 00',
+      string: 'Hi. Ashley Found ',
       time: '17:00'
     },
     {
-      name: 'Jackelyn Perra',
-      tell: '000 0000 00',
-      message: 'Hi. Ashley Found ',
+      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
+      body: '000 0000 00',
+      string: 'Hi. Ashley Found ',
       time: '17:00'
     },
     {
-      name: 'Jackelyn Perra',
-      tell: '000 0000 00',
-      message: 'Hi. Ashley Found ',
+      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
+      body: '000 0000 00',
+      string: 'Hi. Ashley Found ',
       time: '17:00'
     }
   ])
@@ -38,17 +38,17 @@ export default function Mess() {
       const token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
-        const response = await apiClient.get(`/api/email/email-credentials/all?pagination.limit=5&pagination.page=${currentPage}`, {
+        const response = await apiClient.get(`/api/email/all?pagination.limit=5&pagination.page=${currentPage}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (Array.isArray(response.data.emailCredentials)) {
-          setData((prev) => [...prev, ...response.data.emailCredentials]);
+        if (Array.isArray(response.data.emailLetters)) {
+          setData((prev) => [...prev, ...response.data.emailLetters]);
         } else {
-          console.error('Ожидался массив, но получен другой тип данных:', response.data.emailCredentials);
+          console.error('Ожидался массив, но получен другой тип данных:', response.data.emailLetters);
         }
-        console.log(response.data);
+        console.log(response.data.emailLetters);
 
         setCurrentPage((el) => el + 1);
         setTotalCount(response.headers['x-total-count']);
@@ -78,16 +78,16 @@ export default function Mess() {
   }, [fetching]);
   axios.interceptors.request.use(
     async (config) => {
-        let token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
+      let token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+      return config;
     },
     (error) => {
-        return Promise.reject(error);
+      return Promise.reject(error);
     }
-);
+  );
 
 
   axios.interceptors.response.use(
@@ -122,17 +122,27 @@ export default function Mess() {
         <Link to='/write-letter' className='linkMess'>Новое письмо</Link>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {dataParsin.map((el, i) => (
+        {vibor ? !loading ? data.map((el, i) => (
           <div key={i} className='itemsMessContent'>
             <div>
               <div></div>
-              <input type="text" onChange={(prev) =>  prev.target.value = el.tell} value={el.tell ?? ''} />
-              <input type="text" onChange={(prev) =>  prev.target.value = el.name} value={el.name ?? ''} />
-              <input type="text" onChange={(prev) =>  prev.target.value = el.message} value={el.message ?? ''} />
-            </div>
-            <h1>{el.time}</h1>
+              <input type="text" onChange={(prev) => prev.target.value = el.body} value={el.body ?? ''} />
+              <input type="text" onChange={(prev) => prev.target.value = el.recipients} value={el.recipients ?? ''} />
+              <input type="text" onChange={() => {}} value={el.subject } />
+              </div>
+            <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
           </div>
-        ))}
+        )) : <p>loading...</p> : !loading ? data.map((el, i) => (
+          <div key={i} className='itemsMessContent'>
+            <div>
+              <div></div>
+              <input type="text" onChange={(prev) => prev.target.value = el.body} value={el.body ?? ''} />
+              <input type="text" onChange={(prev) => prev.target.value = el.recipients} value={el.recipients ?? ''} />
+              <input type="text" onChange={() => {}} value={el.subject } />
+              </div>
+            <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
+          </div>
+        )) : <p>loading...</p>}
       </div>
     </div>
   )

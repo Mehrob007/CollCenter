@@ -11,7 +11,19 @@ export default function Layout() {
     const navigate = useNavigate()
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
-    const { refreshAccessToken } = getToken()
+    const { refreshAccessToken } = getToken(state => ({
+        refreshAccessToken: state.refreshAccessToken
+    }))
+    useEffect(() => {
+        refreshAccessToken()
+        const performAction = () => {
+            console.log("Функция выполнена");
+            refreshAccessToken()
+        };
+        const intervalId = setInterval(performAction, 10 * 60 * 1000);
+        return () => clearInterval(intervalId);
+    }, []);
+
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken')
@@ -20,6 +32,7 @@ export default function Layout() {
         }
     }, [])
 
+    // console.log(refreshAccessToken());
     async function fetchData() {
         try {
             const token = localStorage.getItem('accessToken')
