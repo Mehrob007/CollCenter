@@ -360,6 +360,6 @@ export default function Coll() {
   const { numbers } = useParams()
 
   return (
-    <div>{numbers}</div>
+    <div>coll: {numbers}</div>
   )
 }

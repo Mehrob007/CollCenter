@@ -322,7 +322,7 @@ export default function Сontacts() {
         <input className='inputContentSearch' placeholder='Поиск' type="text" />
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {loading ? (<p>Loading...</p>) : dataPars.map((prev, i) => (
+        {loading ? (<p>Loading...</p>) : data.map((prev, i) => (
           <div key={i} className="liMess" >
             <div>
               <input type="text" value={prev.name} onChange={() => { }} />
@@ -336,7 +336,6 @@ export default function Сontacts() {
               <circle cx="15" cy="15" r="2.5" fill="#F5F5F5" />
               <circle cx="22" cy="15" r="2.5" fill="#F5F5F5" />
             </svg>
-
           </div>
         ))}
       </div>
