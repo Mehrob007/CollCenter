@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import JsSIP from 'jssip';
 import iconCollBtn from '../../../assets/icon/iconCollBtn.svg';
 import callout from '../../../assets/icon/callout.svg'
 import { Bounce, Flip, toast } from 'react-toastify';
-import { Button, Modal, Space } from 'antd';
+import { Button, Modal } from 'antd';
 import { getToken } from '../../store/StoreGetToken';
-import apiClient from '../../../utils/api';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { FaPersonWalkingDashedLineArrowRight } from 'react-icons/fa6';
+// import apiClient from '../../../utils/api';
+// import axios from 'axios';
+// import { jwtDecode } from 'jwt-decode';
+// import { FaPersonWalkingDashedLineArrowRight } from 'react-icons/fa6';
 
 export default function Coll() {
+  const { numbers } = useParams()
   const [valueInput, setValueInput] = useState('');
   const [valueInput2, setValueInput2] = useState('null');
   const { refreshAccessToken } = getToken()
@@ -107,7 +108,21 @@ useEffect(() => {
   };
 
   // Function to initiate a call
-  const handleCall = () => {
+  const handleCall = ( valueInput ) => {
+    if (valueInput.length !== 9) {
+      toast.error('Номер введен неправильно!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return; // Остановка выполнения функции, если валидация не пройдена
+    }
     if (valueInput.length > 0) {
       setValueInput2(valueInput)
       setValueInput('')
@@ -286,8 +301,12 @@ useEffect(() => {
   //   }
   // )
 
-
-
+  
+  useEffect(() => {
+    if(numbers){
+      handleCall(numbers)
+    }
+  }, [numbers])
   return (
     <div className='CollBox'>
       <Modal
@@ -345,15 +364,13 @@ useEffect(() => {
           <button onClick={() => funNanbersBtn('#')} className="number">#</button>
           <span></span>
           {!calling ?
-            <button onClick={handleCall} className="numberColl">
+            <button onClick={() => handleCall(valueInput)} className="numberColl">
               <img src={iconCollBtn} alt="iconCollBtn" />
             </button> :
             <button className="numberColl" style={{ background: '#D90C0C' }} onClick={hangUp}>
               <img src={callout} alt="callout" />
             </button>
           }
-
-
           <button>
             {`=>`}
           </button>

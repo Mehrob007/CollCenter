@@ -402,8 +402,8 @@ main > .CollBox{
     position: relative;
     z-index: 100;
     background: #F5F5F5;
-    margin: 0 0 0 0;
-    margin-left: 500px;
+    margin: 0 auto;
+    /* margin-left: 500px; */
 }
 main > div{
     position: relative;
@@ -646,13 +646,15 @@ main > div{
     text-align: left;
 }
 .mainMess{
-    margin-top: 43px;
+    max-width: 1034px;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
     gap: 10px;
+    margin: 0 auto;
+    margin-top: 43px;
 }
 .mainMess > h1{
     font-family: Montserrat;
@@ -708,6 +710,16 @@ main > div{
     margin-top: 20px;
     justify-self: flex-end;
     overflow-y: auto;
+    margin: 0px auto;
+}
+.ulLiDataMessHeader{
+    max-width: 1034px;
+    width: 100%;
+    /* border: 2px solid; */
+    margin-top: 20px;
+    justify-self: flex-end;
+    overflow-y: auto;
+    margin: 0px auto;
 }
 .linkMess{
     width: 200px;
@@ -963,6 +975,7 @@ input:focus, textarea:focus{
 .itemsMessContent{
     display: flex;
     min-width: 990px;
+    max-width: 1034px;
     height: 10px;
     margin: 26px 0;
     border-bottom: 1px solid #ccc;

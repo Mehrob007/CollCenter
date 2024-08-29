@@ -37,6 +37,7 @@ export default function Router() {
           element={localStorage.getItem('refreshToken') ? <Layout /> : <Navigate to="/login" replace />}
         >
           <Route index element={<Coll />} />
+          <Route path='/' element={<Coll />} />
           <Route path='/:numbers' element={<Coll />} />
           <Route path="auto-redial" element={<AutoRedial />} />
           <Route path="write-letter" element={<WriteLetter />} />
