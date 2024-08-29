@@ -1,23 +1,10 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
-import { getToken } from '../store/StoreGetToken';
+import { useState } from 'react';
 import apiClient from '../../utils/api';
 
 export default function Login() {
     const [inputLogin, setINputLogin] = useState('');
     const [passwordLogin, setPasswordLogin] = useState('');
     const [loading, setLoading] = useState(false);
-    const { refreshAccessToken } = getToken();
-
-
-
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            setTokenRefreshTimer(); 
-        }
-    }, []);
-
     async function sendFormData(e) {
         // console.log(`https://localhost:7523/api/auth/login?username=${inputLogin}&password=${passwordLogin}`);
         e.preventDefault();
@@ -25,68 +12,20 @@ export default function Login() {
             try {
                 setLoading(true);
                 const res = await apiClient.post(`/api/auth/login?username=${inputLogin}&password=${passwordLogin}`);
-
                 const { accessToken, refreshToken } = res.data;
                 localStorage.setItem('accessToken', accessToken);
                 localStorage.setItem('refreshToken', refreshToken);
                 document.location.href = '/'
-
-                setTokenRefreshTimer();
                 console.log('Login successful');
             } catch (e) {
                 console.error(e);
                 alert('Неправильный пароль или ID');
+
             } finally {
                 setLoading(false);
             }
         }
     }
-
-
-
-    function setTokenRefreshTimer() {
-        
-        clearTimeout(window.tokenRefreshTimer);
-        
-        window.tokenRefreshTimer = setTimeout(() => {
-            refreshAccessToken();
-        }, 2000); 
-    }
-
-    // }
-
-    axios.interceptors.request.use(
-        async (config) => {
-            let token = localStorage.getItem('accessToken');
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => {
-            return Promise.reject(error);
-        }
-    );
-
-    axios.interceptors.response.use(
-        (response) => {
-            return response;
-        },
-        async (error) => {
-            const originalRequest = error.config;
-            if (error.response.status === 401 && !originalRequest._retry) {
-                originalRequest._retry = true;
-                const newToken = await refreshAccessToken();
-                refreshAccessToken();
-                axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-                console.log(newToken);
-                return axios(originalRequest);
-                
-            }
-            return Promise.reject(error);
-        }
-    );
-
     return (
         <div className='boxLogin'>
             <div className='bg-components-1'></div>

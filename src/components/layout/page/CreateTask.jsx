@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,9 +21,11 @@ export default function CreateTask() {
     const [options, setOptions] = useState([]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
     const [fetching, setFetching] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [data2, setData2] = useState([]);
+    const [currentPage2, setCurrentPage2] = useState(1);
+    const [fetching2, setFetching2] = useState(false);
     const { refreshAccessToken } = getToken();
 
     const handleChange = (e) => {
@@ -33,17 +35,13 @@ export default function CreateTask() {
             [name]: value
         }));
     };
-    useEffect(() => {
-        refreshAccessToken()
-    }, [])
-
     const validateForm = () => {
         const { to, description, startDate, deadline } = formData;
         const today = new Date().toISOString().split('T')[0];
-    
+
         console.log('Form Data:', formData);
         console.log('Today:', today);
-    
+
         if (!to || !description || !startDate || !deadline) {
             toast.error('Заполните все поля', {
                 position: "top-right",
@@ -58,7 +56,7 @@ export default function CreateTask() {
             });
             return false;
         }
-    
+
         if (startDate < today) {
             toast.error('Дата начала не может быть в прошлом', {
                 position: "top-right",
@@ -73,7 +71,7 @@ export default function CreateTask() {
             });
             return false;
         }
-    
+
         if (deadline < today) {
             toast.error('Дедлайн не может быть в прошлом', {
                 position: "top-right",
@@ -88,7 +86,7 @@ export default function CreateTask() {
             });
             return false;
         }
-    
+
         if (startDate > deadline) {
             toast.error('Дата начала не может быть позже дедлайна', {
                 position: "top-right",
@@ -103,23 +101,23 @@ export default function CreateTask() {
             });
             return false;
         }
-    
+
         return true;
     };
-    
+
 
     const ApplicationTaskPriority = [
         { label: 'Низкий', value: 0 },
         { label: 'Средний', value: 1 },
         { label: 'Высокий', value: 2 }
     ];
-    const arrObjactInteractionId = [
+    const [arrObjactInteractionId, setArrObjactInteractionId] = useState([
         { label: '1', value: 1 },
         { label: '2', value: 2 },
         { label: '3', value: 3 },
         { label: '4', value: 4 },
         { label: '5', value: 5 },
-    ];
+    ]);
 
     const ApplicationTaskStatus = [
         { label: 'Отложено', value: 0 },
@@ -129,12 +127,15 @@ export default function CreateTask() {
         { label: 'Не начато', value: 4 },
     ];
 
+    console.log(options);
+
+
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('accessToken');
             setLoading(true);
             if (token) {
-                const response = await apiClient.get(`/api/users/all?pagination.limit=10&pagination.page=${currentPage}`, {
+                const response = await apiClient.get(`/api/users/all?pagination.limit=25&pagination.page=${currentPage}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -149,12 +150,20 @@ export default function CreateTask() {
                     console.error('Ожидался массив, но получен другой тип данных:', response.data.users);
                 }
                 setCurrentPage((prev) => prev + 1);
-                setTotalCount(response.headers['x-total-count']);
             } else {
                 console.error('Access token отсутствует');
             }
-        } catch (err) {
-            console.error('Ошибка при выполнении запроса:', err);
+        } catch (error) {
+            console.error('Ошибка при выполнении запроса:', error);
+            if (error.response.status === 401) {
+                let accessToken = await refreshAccessToken()
+                let booleanRes = Boolean(accessToken)
+                if (booleanRes) {
+                    setFetching(true)
+                }
+                console.log(error.response.status);
+                console.log(`Аксес токен обнавлен: ${accessToken}`);
+            }
             toast.error('Ошибка при загрузке данных', {
                 position: "top-right",
                 autoClose: 5000,
@@ -170,28 +179,25 @@ export default function CreateTask() {
             setLoading(false);
             setFetching(false);
         }
-    }; useEffect(() => {
-        fetchData()
-    }, [])
-
-
+    };
     const scrollHandler = (e) => {
         const target = e.target;
-        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && data.length < totalCount && !fetching) {
+        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 && data.length  && !fetching) {
             setFetching(true);
         }
     };
-
     useEffect(() => {
+        fetchData()
+    }, [])
+     useEffect(() => {
         if (fetching) {
             fetchData();
         }
-    }, [fetching]);
+    }, [fetching])
 
     const funSendLetter = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
-
         const token = localStorage.getItem('accessToken');
         try {
             const res = await apiClient.post(`api/tasks/?subject=${formData.to}&startDate=${formData.startDate}T00:00:00Z&dueDate=${formData.deadline}T00:00:00Z&priority=${formData.idPreoritet}&description=${formData.description}&status=${formData.idStatus}${formData.idUsers.map(el => `&usersId=${el}`).join('')}&interactionId=${formData.interactionId}`,
@@ -227,7 +233,104 @@ export default function CreateTask() {
             });
         }
     };
+    const getDataSelectLine = async () => {
+        const token = localStorage.getItem('accessToken');
+        // console.log(token);
+        
+        try {
+            const response = await apiClient.get(
+                `api/interactions/all?pagination.limit=50&pagination.page=${currentPage2}`, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            setData2((prevState) => [...prevState, ...response.data.interactions]);
+            setCurrentPage2((el) => el + 1);
+            console.log(response.data.interactions);
 
+
+            // const faceData = [
+            //     {
+            //       "id": 0,
+            //       "description": "string",
+            //       "fields": [
+            //         {
+            //           "id": 0,
+            //           "name": "string",
+            //           "value": "string"
+            //         }
+            //       ],
+            //       "company": {
+            //         "id": 0,
+            //         "name": "string",
+            //         "sipNumber": "string"
+            //       },
+            //       "contact": {
+            //         "id": 0,
+            //         "name": "string",
+            //         "surname": "string",
+            //         "phone": "string",
+            //         "middleName": "string",
+            //         "email": "string",
+            //         "description": "string",
+            //         "fields": [
+            //           {
+            //             "id": 0,
+            //             "name": "string",
+            //             "value": "string"
+            //           }
+            //         ],
+            //         "creator": {
+            //           "id": 0,
+            //           "username": "string",
+            //           "role": "Operator",
+            //           "name": "string",
+            //           "surname": "string",
+            //           "extensionNumber": 0,
+            //           "createdAt": "string"
+            //         },
+            //         "createdAt": "string"
+            //       },
+            //       "user": {
+            //         "id": 0,
+            //         "username": "string",
+            //         "role": "Operator",
+            //         "name": "string",
+            //         "surname": "string",
+            //         "extensionNumber": 0,
+            //         "createdAt": "string"
+            //       },
+            //       "interactionDate": "string"
+            //     }
+            //   ]
+            const arr = response.data.interactions.map(el => [
+                { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
+            ])
+                        
+            setArrObjactInteractionId(...arr)
+        } catch (error) {
+            console.error("Ошибка при загрузке данных:", error);
+        } finally {
+            setFetching2(false);
+        }
+    }
+    const scrollHandler2 = (e) => {
+        const target = e.target;
+        if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 ) {
+                console.log('scroll');
+                setFetching2(true)
+            }
+        }
+    };
+    useEffect(() => {
+        getDataSelectLine()
+    }, [])
+    useEffect(() => {
+        getDataSelectLine()
+    }, [fetching2]);
     return (
         <div className='WriteLetter'>
             <ToastContainer />
@@ -235,6 +338,23 @@ export default function CreateTask() {
                 <h1>Создать задачу</h1>
             </div>
             <form className='formDataWL' onSubmit={funSendLetter}>
+                <Select
+                    showSearch
+                    style={{ width: '100%' }}
+                    placeholder="Взаимодействие"
+                    optionFilterProp="label"
+                    filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                    }
+                    onChange={(value) => {
+                        setFormData((prev) => ({
+                            ...prev,
+                            interactionId: value
+                        }));
+                    }}
+                    options={arrObjactInteractionId}
+                    onPopupScroll={scrollHandler2}
+                />
                 <input
                     name="to"
                     placeholder='Название задачи'
@@ -257,22 +377,7 @@ export default function CreateTask() {
                         options={!loading && options}
                     />
                 </Space>
-                <Select
-                    showSearch
-                    style={{ width: '100%' }}
-                    placeholder="Приоритет"
-                    optionFilterProp="label"
-                    filterSort={(optionA, optionB) =>
-                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                    }
-                    onChange={(value) => {
-                        setFormData((prev) => ({
-                            ...prev,
-                            interactionId: value
-                        }));
-                    }}
-                    options={arrObjactInteractionId}
-                />
+
                 <div className='StatusPrioritet'>
                     <Select
                         showSearch

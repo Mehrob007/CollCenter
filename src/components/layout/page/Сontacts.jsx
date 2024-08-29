@@ -1,121 +1,128 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SearchIcon from '../../../assets/icon/SearchIcon.svg'
 import { Button, Input, Modal } from 'antd'
 import iconDelete from '../../../assets/icon/iconDelete.svg'
 import miniCall from '../../../assets/icon/miniCall.svg'
 import cloasX from '../../../assets/icon/x.svg'
-import axios from 'axios'
 import { getToken } from '../../store/StoreGetToken'
 import apiClient from '../../../utils/api'
-import { error } from 'jquery'
 import { useNavigate } from 'react-router-dom'
+import { Bounce, toast, ToastContainer } from 'react-toastify'
 
 export default function Сontacts() {
-  const [open, setOpen] = useState(false)
-  const [openCreate, setOpenCreate] = useState(false)
-  const { refreshAccessToken } = getToken()
+  const [dataModalG, setDataModalG] = useState(
+    //   {
+    //   name: '',
+    //   surname: '',
+    //   middleName: '',
+    //   phone: ''
+    // }
+  );
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     middleName: '',
     phone: '',
-    email: '',
-    district: 'И. Сомони',
-    school: 'СОУ 8',
-    role: 'Родитель',
   });
-  const [dataPars, setdataPars] = useState([
-    {
-      "id": 0,
-      "name": "string",
-      "surname": "string",
-      "phone": "string",
-      "middleName": "string",
-      "email": "string",
-      "description": "string",
-      "fields": [
-        {
-          "id": 0,
-          "name": "string",
-          "value": "string"
-        }
-      ],
-      "creator": {
-        "id": 0,
-        "username": "string",
-        "role": "Operator",
-        "name": "string",
-        "surname": "string",
-        "extensionNumber": 0,
-        "createdAt": "string"
-      },
-      "createdAt": "string"
-    },
-    {
-      "id": 0,
-      "name": "string",
-      "surname": "string",
-      "phone": "string",
-      "middleName": "string",
-      "email": "string",
-      "description": "string",
-      "fields": [
-        {
-          "id": 0,
-          "name": "string",
-          "value": "string"
-        }
-      ],
-      "creator": {
-        "id": 0,
-        "username": "string",
-        "role": "Operator",
-        "name": "string",
-        "surname": "string",
-        "extensionNumber": 0,
-        "createdAt": "string"
-      },
-      "createdAt": "string"
-    }
-  ]);
+  const [open, setOpen] = useState(false)
+  const [openCreate, setOpenCreate] = useState(false)
+  const { refreshAccessToken } = getToken()
   const [dataModal, setDataModal] = useState({});
-  const navigate = useNavigate()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [fetching, setFetching] = useState(true);
+  const [IDModal, setIDModal] = useState('');
 
-  const createContacts = () => {
+
+  const [poisk, setPoisk] = useState('');
+  const [poiskSurNeme, setPoiskSurNeme] = useState('');
+  const [poiskMiaddleName, setPoiskMiaddleName] = useState('');
+  const [poiskPhone, setPoiskPhone] = useState('');
+
+  const [restart, setRestart] = useState(false)
+  const navigate = useNavigate()
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    console.log(value);
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
+  }
+
+
+
+
+  const createContacts = async () => {
     let token = localStorage.getItem('accessToken')
     console.log(formData);
-
-    try {
-      const res = apiClient.post(`api/contacts/link`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+    if (IDModal && formData.firstName && formData.lastName && formData.phone && formData.middleName) {
+      if (token) {
+        try {
+          const res = apiClient.put(`api/contacts/?id=${IDModal}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}`, null,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          )
+          console.log(res);
+          setOpenCreate(false)
+          setFetching(true)
+        } catch (error) {
+          console.error(error);
+          if (error.response.status === 401) {
+            let accessToken = await refreshAccessToken()
+            let booleanRes = Boolean(accessToken)
+            if (booleanRes) {
+              setRestart(true)
+            }
+            console.log(error.response.status);
+            console.log(`Аксес токен обнавлен: ${accessToken}`);
+          }
         }
-
-      })
-      console.log(res);
-
-    } catch (e) {
-      console.error(e);
+      }
+    } else {
+      console.log('Заполните необходимые поля');
+      toast.error('Заполните необходимые поля', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
     }
   }
 
   const getModalDataContact = async (dataModalID) => {
     let token = localStorage.getItem('accessToken')
     try {
-      const res = apiClient.get(`api/contacts/?id=${dataModalID}`, {
+      const res = await apiClient.get(`api/contacts/?id=${dataModalID.id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
-
       })
-      // setDataModal(res)
-    } catch (e) {
-      console.error(e);
+      console.log(res.data);
+      
+      setDataModal(res.data)
+      setIDModal(dataModalID.id)
+      setFormData()
+    } catch (error) {
+      console.error(error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+
+      }
     }
   }
 
@@ -123,53 +130,76 @@ export default function Сontacts() {
     console.log('calling');
     navigate(`/${tellNumber}`)
   }
-  const noCalling = async (iDDelete) => {
+  const noCalling = async () => {
     let token = localStorage.getItem('accessToken')
     try {
-      const res = await apiClient.delete(`api/contacts/?id=${iDDelete}`, {
+      const res = await apiClient.delete(`api/contacts/?id=${IDModal}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       console.log(res);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      if (error.response.status === 401) {
+        let accessToken = refreshAccessToken()
+        let booleanRes = Boolean(accessToken);
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+    } finally {
+      navigate(0)
+      setOpenCreate(false)
     }
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    })
-  }
-
-
-  async function fetchData() {
+  async function fetchData( el ) {
     try {
       let token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
-        const response = await apiClient.get(`/api/contacts/all?pagination.limit=5&pagination.page=${currentPage}`, {
+        if (el) {
+          setCurrentPage(0);
+        }
+        const response = await apiClient.get(`/api/contacts/all?${poisk != '' ? `name=${poisk}&` : ''}${poiskSurNeme != '' ? `surname=${poiskSurNeme}&` : ''}${poiskMiaddleName != '' ? `middleName=${poiskMiaddleName}&` : ''}${poiskPhone != '' ? `phone=${poiskPhone}&` : ''}pagination.limit=25&pagination.page=${currentPage}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (Array.isArray(response.data.contacts)) {
-          setData((prev) => [...prev, ...response.data.contacts]);
+          if (el) {
+            setData(response.data.contacts)
+          } else {
+            setData((prev) => [...prev, ...response.data.contacts])
+          }
         } else {
           console.error('Ожидался массив, но получен другой тип данных:', response.data.contacts);
         }
         console.log(response.data);
-
-        setCurrentPage((el) => el + 1);
+        if (el) {
+          setCurrentPage((el) => el + 1);
+        } else {
+          setCurrentPage(1);
+        }
+        poisk.length > 0 && poiskSurNeme.length > 0 && poiskMiaddleName.length > 0 && poiskPhone.length > 0 && setCurrentPage(1)
         setTotalCount(response.headers['x-total-count']);
       } else {
         console.error('Access token отсутствует');
       }
-    } catch (err) {
-      console.error('Ошибка при выполнении запроса:', err);
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken();
+        let booleanRes = Boolean(accessToken);
+        if (booleanRes) {
+          setFetching(true)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
     } finally {
       setLoading(false);
       setFetching(false);
@@ -183,61 +213,33 @@ export default function Сontacts() {
       setFetching(true);
     }
   };
-
+  const OpneModalInfo = (id) => {
+    setOpen(true)
+    getModalDataContact(id)
+    setDataModalG(id)
+  }
   useEffect(() => {
     if (fetching) {
       fetchData();
     }
   }, [fetching]);
-  axios.interceptors.request.use(
-    async (config) => {
-      let token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-
-  axios.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    async (error) => {
-      const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        const newToken = await refreshAccessToken();
-        setFetching(true)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-        console.log(newToken);
-        return axios(originalRequest);
-
-      }
-      return Promise.reject(error);
-    }
-  );
-  const OpneModalInfo = (id) => {
-    setOpen(true)
-    getModalDataContact(id)
-  }
-  // console.log(data);
+  useEffect(() => {
+    createContacts()
+  }, [restart])
   return (<>
+    <ToastContainer />
     <Modal
       open={open}
       title=''
-      footer={(_, { OkBtn, CancelBtn }) => (
+      footer={() => (
         <>
           <div className='btnCallinBack'>
 
-            <Button onClick={() => calling({/*dataModal.phone */ } || '000000')} style={{ background: '#0CD939', color: '#fff' }} className='callinBackContacts'>
+            <Button onClick={() => calling(dataModalG.phone)} style={{ background: '#0CD939', color: '#fff' }} className='callinBackContacts'>
               <img src={miniCall} alt="iconCollBtn" />
               <span>Позвонить</span>
             </Button>
-            <Button onClick={noCalling} style={{ background: '#D90C0C', color: '#fff' }} className='callinBackContacts'>
+            <Button onClick={() => noCalling()} style={{ background: '#D90C0C', color: '#fff' }} className='callinBackContacts'>
               <img src={iconDelete} alt="iconCollBtn" />
               <span>Удалить</span>
             </Button>
@@ -249,11 +251,15 @@ export default function Сontacts() {
         <img src={cloasX} alt="cloasX" />
       </button>
       <div className='box-modal-create-elements'>
-        <div className='bg-ccc'>
-          {false || 'A'} {/*dataModal.name[0] */}
-        </div>
-        <h2>{false || 'Name'}</h2>{/*dataModal.name */}
-        <p>{false || '+992 000-0000-00'}</p>{/*dataModal.phone */}
+        {dataModalG ?
+          <>
+            <div className='bg-ccc'>
+              {dataModalG.name[0]}
+            </div>
+            <h2>{dataModalG.name}</h2>
+            <p>{dataModalG.phone}</p>
+          </> : ''
+        }
         <h1 onClick={() => {
           setOpen(false)
           setOpenCreate(true)
@@ -263,10 +269,10 @@ export default function Сontacts() {
     <Modal
       open={openCreate}
       title='Изменить контакт'
-      footer={(_, { OkBtn, CancelBtn }) => (
+      footer={() => (
         <>
           <div className='btnCallinBack'>
-            <Button onClick={() => createContacts()} style={{ background: '#2EA0FF', color: '#fff' }} className='callinBackContacts'>
+            <Button onClick={createContacts} style={{ background: '#2EA0FF', color: '#fff' }} className='callinBackContacts'>
               <span>Сохранить</span>
             </Button>
             <Button onClick={() => setOpenCreate(false)} style={{ background: '#2ea1ff48', color: '#2EA0FF' }} className='callinBackContacts'>
@@ -280,37 +286,30 @@ export default function Сontacts() {
         <img src={cloasX} alt="cloasX" />
       </button>
 
-      <div className="box-modal-createing-elements">
-        <Input
-          value={formData.firstName ?? ''}
-          onChange={handleChange}
-          placeholder="Имя" />
-        <Input
-          value={formData.lastName ?? ''}
-          onChange={handleChange}
-          placeholder="Фамилия" />
-        <Input
-          value={formData.middleName ?? ''}
-          onChange={handleChange}
-          placeholder="Отчества" />
-        <Input
-          value={formData.phone ?? ''}
-          onChange={handleChange}
-          placeholder="Телефон" />
-        <Input
-          value={formData.email ?? ''}
-          onChange={handleChange}
-          placeholder="E-mail" />
-        <select value={formData.district ?? ''} onChange={handleChange}>
-          <option value="*">И. Сомони</option>
-        </select>
-        <select value={formData.school ?? ''} onChange={handleChange}>
-          <option value="*">СОУ 8</option>
-        </select>
-        <select value={formData.role ?? ''} onChange={handleChange}>
-          <option value="*">Родитель</option>
-        </select>
-      </div>
+      {dataModalG &&
+        <div className="box-modal-createing-elements">
+          <Input
+            defaultValue={dataModalG.name}
+            name='firstName'
+            onChange={handleChange}
+            placeholder="Имя" />
+          <Input
+            defaultValue={dataModalG.surname}
+            name='lastName'
+            onChange={handleChange}
+            placeholder="Фамилия" />
+          <Input
+            defaultValue={dataModalG.middleName}
+            name='middleName'
+            onChange={handleChange}
+            placeholder="Отчества" />
+          <Input
+            defaultValue={dataModalG.phone}
+            name='phone'
+            onChange={handleChange}
+            placeholder="Телефон" />
+        </div>
+      }
 
     </Modal>
     <div className='MessBox'>
@@ -318,19 +317,59 @@ export default function Сontacts() {
         <h1>Контакты</h1>
       </div>
       <div className="mainMess">
-        <img src={SearchIcon} className='SearchIcon' alt="SearchIcon" />
-        <input className='inputContentSearch' placeholder='Поиск' type="text" />
+        <nav style={{ maxWidth: '350px', widows: '100%', display: "flex", justifyContent: 'center' }}>
+          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoisk(el.target.value)} placeholder='Поиск по имени' type="text" />
+        </nav>
+        <nav style={{ maxWidth: '350px', widows: '100%', display: "flex", justifyContent: 'center' }}>
+          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskSurNeme(el.target.value)} placeholder='Поиск по фамилии' type="text" />
+        </nav>
+        <nav style={{ maxWidth: '350px', widows: '100%', display: "flex", justifyContent: 'center' }}>
+          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskMiaddleName(el.target.value)} placeholder='Поиск по очества' type="text" />
+        </nav>
+        <nav style={{ maxWidth: '350px', widows: '100%', display: "flex", justifyContent: 'center' }}>
+          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskPhone(el.target.value)} placeholder='Поиск по номеру' type="text" />
+          <button className='btnPoisk' style={{ marginLeft: '10px' }} onClick={() => fetchData('p')}>
+            <img src={SearchIcon} className='SearchIcon' alt="SearchIcon" />
+          </button>
+        </nav>
+
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
+        <div className="liMess" style={{ height: '15px', borderColor: '#229AFF' }}>
+          <div>
+            <input type="text" value='Имя' onChange={() => { }} />
+          </div>
+          <div>
+            <input type="text" value='Фамилия' onChange={() => { }} />
+          </div>
+          <div>
+            <input type="text" value='Отчества' onChange={() => { }} />
+          </div>
+          <div>
+            <input type="text" value='Телефон' onChange={() => { }} />
+          </div>
+          <svg style={{ opacity: 0 }} width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="15" cy="15" r="15" fill="#279DFF" />
+            <circle cx="8" cy="15" r="2.5" fill="#F5F5F5" />
+            <circle cx="15" cy="15" r="2.5" fill="#F5F5F5" />
+            <circle cx="22" cy="15" r="2.5" fill="#F5F5F5" />
+          </svg>
+        </div>
         {loading ? (<p>Loading...</p>) : data.map((prev, i) => (
-          <div key={i} className="liMess" >
+          <div key={i} className="liMess">
             <div>
               <input type="text" value={prev.name} onChange={() => { }} />
             </div>
             <div>
+              <input type="text" value={prev.surname} onChange={() => { }} />
+            </div>
+            <div>
+              <input type="text" value={prev.middleName} onChange={() => { }} />
+            </div>
+            <div>
               <input type="text" value={prev.phone} onChange={() => { }} />
             </div>
-            <svg style={{ cursor: 'pointer' }} onClick={() => OpneModalInfo(prev.id)} width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg style={{ cursor: 'pointer' }} onClick={() => OpneModalInfo(prev)} width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="15" cy="15" r="15" fill="#279DFF" />
               <circle cx="8" cy="15" r="2.5" fill="#F5F5F5" />
               <circle cx="15" cy="15" r="2.5" fill="#F5F5F5" />

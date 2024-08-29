@@ -341,6 +341,16 @@ header{
     height: 30px;
     background: url('../assets/icon/Group916.svg') center / cover no-repeat ;
 }
+.iconMenu5{
+    width: 30px;
+    height: 30px;
+    background: url('../assets/icon/iconMenejment.svg') center / cover no-repeat; 
+}
+.iconMenu6{
+    width: 30px;
+    height: 30px;
+    background: url('../assets/icon/Otchot.svg') center / cover no-repeat; 
+}
 .Exte{
     max-width: 200px;
     height: 30px;
@@ -642,6 +652,7 @@ main > div{
     align-items: center;
     justify-content: space-between;
     position: relative;
+    gap: 10px;
 }
 .mainMess > h1{
     font-family: Montserrat;
@@ -810,8 +821,8 @@ main > div{
     outline: none;
 }
 .inputContentSearch{
-    max-width: 250px;
-    width: 230px;
+    max-width: 1000px;
+    width: 100%;
     padding: 0 10px;
     height: 50px;
     border: 1px solid #ccc;
@@ -825,8 +836,8 @@ main > div{
     position: relative;
 }
 .SearchIcon{
-    position: absolute;
-    left: 220px;
+    /* position: absolute;
+    left: 220px; */
 }
 .mainMagazine{
     margin-top: 40px;
@@ -1023,4 +1034,9 @@ input:focus, textarea:focus{
     line-height: 24.38px;
     text-align: left;
     margin-right: 44px;
+}
+.btnPoisk{
+    max-width: 50px;
+    height: 50px;
+    cursor: pointer;
 }

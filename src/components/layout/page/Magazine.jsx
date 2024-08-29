@@ -1,5 +1,4 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { getToken } from '../../store/StoreGetToken';
 import apiClient from '../../../utils/api';
 
@@ -11,7 +10,9 @@ export default function Magazine() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [fetching, setFetching] = useState(true);
-  const { refreshAccessToken } = getToken()
+  const { refreshAccessToken } = getToken(state => ({
+    refreshAccessToken: state.refreshAccessToken
+  }))
 
   async function fetchData() {
     try {
@@ -30,51 +31,27 @@ export default function Magazine() {
         }
         console.log(response.data);
 
-        setCurrentPage((el) => el + 1);
         setTotalCount(response.headers['x-total-count']);
+        setCurrentPage((el) => el + 1);
       } else {
         console.error('Access token отсутствует');
       }
-    } catch (err) {
-      console.error('Ошибка при выполнении запроса:', err);
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if(error.response.status === 401){
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if(booleanRes){
+          setFetching(true)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
     } finally {
       setLoading(false);
       setFetching(false);
     }
   }
-  axios.interceptors.request.use(
-    async (config) => {
-        let token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
-
-  axios.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    async (error) => {
-      const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        const newToken = await refreshAccessToken();
-        setFetching(true)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-        console.log(newToken);
-        return axios(originalRequest);
-
-      }
-      return Promise.reject(error);
-    }
-  );
-
-
   const scrollHandler = (e) => {
     console.log('scroll');
     const target = e.target;
@@ -101,7 +78,7 @@ export default function Magazine() {
         </div>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-
+          {!loading ? <></> : <p>Loading...</p>}
       </div>
     </div>
   )

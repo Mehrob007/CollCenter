@@ -123,3 +123,28 @@
     display: flex;
     justify-content: space-between;
   }
+  .upDataBtn{
+    width: 60px;
+    height: 40px;
+    color: #555;
+    cursor: pointer;
+  }
+  .upDataBtn > svg{
+    height: 100px;
+    width: 20px;
+  }
+  .messageDataModal{
+    overflow-y: scroll;
+    min-height: 620px;
+    max-height: 620px;
+    min-width: 1050px;
+    /* border: 2px solid red; */
+    
+    text-align: center;
+  }
+  .box-modal-createing-elements > input{
+    color: #000000;
+  }
+  .write{
+    cursor: pointer;
+  }

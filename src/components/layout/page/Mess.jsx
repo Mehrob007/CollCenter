@@ -1,44 +1,31 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { getToken } from '../../store/StoreGetToken';
 import apiClient from '../../../utils/api';
+import { LuDatabaseBackup } from 'react-icons/lu';
+import { Modal } from 'antd';
+import cloasX from '../../../assets/icon/x.svg'
 
 export default function Mess() {
   const [vibor, setVibor] = useState(true)
-  const { refreshAccessToken } = getToken()
-  const [dataParsin, setDataParsing] = useState([
-    {
-      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
-      body: '000 0000 00',
-      string: 'Hi. Ashley Found ',
-      time: '17:00'
-    },
-    {
-      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
-      body: '000 0000 00',
-      string: 'Hi. Ashley Found ',
-      time: '17:00'
-    },
-    {
-      recipient: ['Jackelyn Perra1', 'Jackelyn Perra2'],
-      body: '000 0000 00',
-      string: 'Hi. Ashley Found ',
-      time: '17:00'
-    }
-  ])
+  const { refreshAccessToken } = getToken(state => ({
+    refreshAccessToken: state.refreshAccessToken
+  }))
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [fetching, setFetching] = useState(true);
+  const [open, setOpen] = useState(false)
+  const [dataMessage, setDataMessage] = useState();
+  const navigate = useNavigate()
 
   async function fetchData() {
     try {
       const token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
-        const response = await apiClient.get(`/api/email/all?pagination.limit=5&pagination.page=${currentPage}`, {
+        const response = await apiClient.get(`/api/email/all?pagination.limit=25&pagination.page=${currentPage}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -55,8 +42,18 @@ export default function Mess() {
       } else {
         console.error('Access token отсутствует');
       }
-    } catch (err) {
-      console.error('Ошибка при выполнении запроса:', err);
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes){
+            setFetching(true)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+    }
+      
     } finally {
       setLoading(false);
       setFetching(false);
@@ -76,43 +73,37 @@ export default function Mess() {
       fetchData();
     }
   }, [fetching]);
-  axios.interceptors.request.use(
-    async (config) => {
-      let token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
 
-
-  axios.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    async (error) => {
-      const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        const newToken = await refreshAccessToken();
-        setFetching(true)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-        console.log(newToken);
-        return axios(originalRequest);
-
-      }
-      return Promise.reject(error);
-    }
-  );
+  const opneModalInfoMessage = (info) => {
+    setOpen(true)
+    setDataMessage(info)
+    console.log(info);
+  }
+  const writeMessage = (email) => {
+    navigate(`/write-letter/${email}`)
+  }
 
   return (
     <div className='MessBox'>
+      {dataMessage && (
+        <Modal
+          open={open}
+          title={dataMessage.subject}
+          footer={() => <><button className='write' onClick={() => writeMessage(dataMessage.recipients)}> Написать </button></>}
+        >
+          <button className='cloas' onClick={() => setOpen(false)}>
+            <img src={cloasX} alt="cloasX" />
+          </button>
+          <div className='messageDataModal'>
+            <p>{dataMessage.body}</p>
+          </div>
+        </Modal>
+      )}
       <div className="headerMess">
         <h1>Почта</h1>
+        <button className='upDataBtn' onClick={() => setFetching(true)}>
+          <LuDatabaseBackup />
+        </button>
       </div>
       <div className="mainMess">
         <div>
@@ -122,24 +113,24 @@ export default function Mess() {
         <Link to='/write-letter' className='linkMess'>Новое письмо</Link>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {vibor ? !loading ? data.map((el, i) => (
-          <div key={i} className='itemsMessContent'>
+        {vibor ? !loading ? data.filter((prevFilter) => prevFilter.isIncoming == false).map((el, i) => (
+          <div key={i} className='itemsMessContent' style={{ cursor: "pointer" }} onClick={() => opneModalInfoMessage(el)}>
             <div>
               <div></div>
               <input type="text" onChange={(prev) => prev.target.value = el.body} value={el.body ?? ''} />
               <input type="text" onChange={(prev) => prev.target.value = el.recipients} value={el.recipients ?? ''} />
-              <input type="text" onChange={() => {}} value={el.subject } />
-              </div>
+              <input type="text" onChange={() => { }} value={el.subject} />
+            </div>
             <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
           </div>
-        )) : <p>loading...</p> : !loading ? data.map((el, i) => (
-          <div key={i} className='itemsMessContent'>
+        )) : <p>loading...</p> : !loading ? data.filter((prevFilter) => prevFilter.isIncoming == true).map((el, i) => (
+          <div key={i} className='itemsMessContent' style={{ cursor: "pointer" }} onClick={() => opneModalInfoMessage(el)}>
             <div>
               <div></div>
               <input type="text" onChange={(prev) => prev.target.value = el.body} value={el.body ?? ''} />
               <input type="text" onChange={(prev) => prev.target.value = el.recipients} value={el.recipients ?? ''} />
-              <input type="text" onChange={() => {}} value={el.subject } />
-              </div>
+              <input type="text" onChange={() => { }} value={el.subject} />
+            </div>
             <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
           </div>
         )) : <p>loading...</p>}

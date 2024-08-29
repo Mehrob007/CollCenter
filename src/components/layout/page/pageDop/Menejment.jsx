@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getToken } from '../../store/StoreGetToken';
-import apiClient from '../../../utils/api';
+import { useState, useEffect } from 'react'
+import { getToken } from '../../../store/StoreGetToken';
+import apiClient from '../../../../utils/api';
 
-export default function Task() {
+
+export default function Menejment() {
+  const [vibor, setVibor] = useState(1)
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -13,33 +14,32 @@ export default function Task() {
     refreshAccessToken: state.refreshAccessToken
   }))
 
-
   async function fetchData() {
     try {
       const token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
-        const response = await apiClient.get(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}`, {
+        const response = await apiClient.get(`/api/contacts/all?pagination.limit=1&pagination.page=${currentPage}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (Array.isArray(response.data.tasks)) {
-          setData((prev) => [...prev, ...response.data.tasks]);
+        if (Array.isArray(response.data.contacts)) {
+          setData((prev) => [...prev, ...response.data.contacts]);
         } else {
-          console.error('Ожидался массив, но получен другой тип данных:', response.data.tasks);
+          console.error('Ожидался массив, но получен другой тип данных:', response.data.contacts);
         }
         console.log(response.data);
 
-        setCurrentPage((el) => el + 1);
         setTotalCount(response.headers['x-total-count']);
+        setCurrentPage((el) => el + 1);
       } else {
         console.error('Access token отсутствует');
       }
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
       if(error.response.status === 401){
-        let accessToken = refreshAccessToken()
+        let accessToken = await refreshAccessToken()
         let booleanRes = Boolean(accessToken)
         if(booleanRes){
           setFetching(true)
@@ -52,7 +52,6 @@ export default function Task() {
       setFetching(false);
     }
   }
-
   const scrollHandler = (e) => {
     console.log('scroll');
     const target = e.target;
@@ -66,26 +65,21 @@ export default function Task() {
       fetchData();
     }
   }, [fetching]);
-
   return (
     <div className='MessBox'>
-      <div className="mainTask">
-        <h1>Задачи</h1>
-        <Link to='/create-task' className='linkMess'>Создать задачу</Link>
+      <div className="headerMess">
+        <h1>Операторы</h1>
       </div>
-      <div onScroll={scrollHandler} className="ulLiDataMess">
-        {loading ? <p>loading...</p> : data.map((prev, i) =>
-          <div key={i} className='itemsMessContent'>
-            <div>
-              <div></div>
-              <input type="text" onChange={(prev) => prev.target.value = prev.subject} value={prev.subject ?? ''} />
-              <input type="text" onChange={(prev) => prev.target.value = prev.body} value={prev.creator.name ?? ''} />
-              <input type="text" onChange={(prev) => prev.target.value = prev.string} value={prev.startDate ?? ''} />
-              <input type="text" onChange={(prev) => prev.target.value = prev.string} value={prev.dueDate ?? ''} />
-            </div>
-            <h1>{prev.time}</h1>
-          </div>)}
+      <div className="mainMagazine">
+        <div>
+          <button onClick={() => setVibor(1)} style={{ background: vibor == 1 ? '#2EA0FF' : 'transparent', color: vibor == 1 ? 'white' : 'black' }}>Все операторы</button>
+          <button onClick={() => setVibor(2)} style={{ background: vibor == 2 ? '#2EA0FF' : 'transparent', color: vibor == 2 ? 'white' : 'black' }}>Онлайн</button>
+          <button onClick={() => setVibor(3)} style={{ background: vibor == 3 ? '#2EA0FF' : 'transparent', color: vibor == 3 ? 'white' : 'black' }}>Офлайн</button>
+        </div>
+      </div>
+      <div className="ulLiDataMess" onScroll={scrollHandler}>
+          {!loading ? <></> : <p>Loading...</p>}
       </div>
     </div>
-  );
+  )
 }

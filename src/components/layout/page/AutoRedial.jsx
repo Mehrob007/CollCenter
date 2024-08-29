@@ -1,7 +1,11 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
+// import { getToken } from '../../store/StoreGetToken';
 
 export default function AutoRedial() {
+    // const { refreshAccessToken } = getToken(state => ({
+    //     refreshAccessToken: state.refreshAccessToken
+    // }))
+
     return (
         <form className='AutoRedial'>
             <div className='AutoRedialDiv'>
@@ -18,11 +22,11 @@ export default function AutoRedial() {
             <div className='FileRedialDiv'>
                 <div>
                     <input type="file" id="file-input" className="file-input" />
-                    <label for="file-input" className="custom-file-label">Прикрепить файл</label>
+                    <label htmlFor="file-input" className="custom-file-label">Прикрепить файл</label>
                 </div>
                 <div>
                     <input type="file" id="file-input" className="file-input" />
-                    <label for="file-input" className="custom-file-label">Записать</label>
+                    <label htmlFor="file-input" className="custom-file-label">Записать</label>
                 </div>
             </div>
             <div className='btnRedialDiv'>

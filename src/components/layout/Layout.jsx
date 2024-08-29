@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { BsPersonCircle } from 'react-icons/bs'
-import axios from 'axios'
 import { jwtDecode } from 'jwt-decode' // Remove if not used
 import { getToken } from '../store/StoreGetToken'
 import apiClient from '../../utils/api'
@@ -14,25 +13,7 @@ export default function Layout() {
     const { refreshAccessToken } = getToken(state => ({
         refreshAccessToken: state.refreshAccessToken
     }))
-    useEffect(() => {
-        refreshAccessToken()
-        const performAction = () => {
-            console.log("Функция выполнена");
-            refreshAccessToken()
-        };
-        const intervalId = setInterval(performAction, 10 * 60 * 1000);
-        return () => clearInterval(intervalId);
-    }, []);
-
-
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken')
-        if (token) {
-            setTokenRefreshTimer()
-        }
-    }, [])
-
-    // console.log(refreshAccessToken());
+    const [restart, setRestart] = useState(false)
     async function fetchData() {
         try {
             const token = localStorage.getItem('accessToken')
@@ -46,63 +27,35 @@ export default function Layout() {
                     },
                 })
                 setData(response.data)
+                setRestart(false)
             } else {
                 console.error('Access token is missing')
             }
-        } catch (err) {
-            console.error(err)
+        } catch (error) {
+            if (error.response.status === 401) {
+                let accessToken = await refreshAccessToken()
+                let booleanRes = Boolean(accessToken)
+                if (booleanRes){
+                    setRestart(true)
+                }
+                console.log(error.response.status);
+                console.log(`Аксес токен обнавлен: ${accessToken}`);
+                
+            }
         } finally {
             setLoading(false)
         }
     }
-
-    function setTokenRefreshTimer() {
-        clearTimeout(window.tokenRefreshTimer)
-        window.tokenRefreshTimer = setTimeout(() => {
-            refreshAccessToken()
-        }, 60000) // Adjust time as necessary
-    }
-
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [restart])
 
+    console.log(restart);
     const Exte = () => {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         navigate(0)
     }
-
-    axios.interceptors.request.use(
-        async (config) => {
-            const token = localStorage.getItem('accessToken')
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`
-            }
-            return config
-        },
-        (error) => {
-            return Promise.reject(error)
-        }
-    )
-
-    axios.interceptors.response.use(
-        (response) => {
-            return response
-        },
-        async (error) => {
-            const originalRequest = error.config
-            if (error.response.status === 401 && !originalRequest._retry) {
-                originalRequest._retry = true
-                const newToken = await refreshAccessToken()
-                axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
-                console.log(newToken)
-                return axios(originalRequest)
-            }
-            return Promise.reject(error)
-        }
-    )
-
     return (
         <div className="bigBox">
             <header style={{ width: openHeader ? '390px' : '150px' }}>
@@ -152,6 +105,14 @@ export default function Layout() {
                             <div className="iconMenu4"></div>
                             <span style={{ width: openHeader ? '120px' : '30px' }}>Журнал</span>
                         </NavLink>
+                        {/* <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="menejment">
+                            <div className="iconMenu5"></div>
+                            <span style={{ width: openHeader ? '120px' : '30px' }}>Операторы</span>
+                        </NavLink>
+                        <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="otchot">
+                            <div className="iconMenu6"></div>
+                            <span style={{ width: openHeader ? '120px' : '30px' }}>Отчеты</span> 
+                        </NavLink>*/}
                     </nav>
                     <NavLink className="Exte" onClick={() => Exte()} style={{ width: openHeader ? '200px' : '30px' }} to="/">
                         <div></div>

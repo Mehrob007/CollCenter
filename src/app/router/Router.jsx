@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+// import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // const Layout = lazy(() => import('../../components/layout/Layout'));
@@ -23,7 +23,8 @@ import Magazine from '../../components/layout/page/Magazine'
 import AutoRedial from '../../components/layout/page/AutoRedial'
 import WriteLetter from '../../components/layout/page/WriteLetter'
 import CreateTask from '../../components/layout/page/CreateTask'
-import axios from 'axios';
+import Menejment from '../../components/layout/page/pageDop/Menejment';
+import Otchot from '../../components/layout/page/pageDop/Otchot';
 
 export default function Router() {
   
@@ -39,11 +40,14 @@ export default function Router() {
           <Route path='/:numbers' element={<Coll />} />
           <Route path="auto-redial" element={<AutoRedial />} />
           <Route path="write-letter" element={<WriteLetter />} />
+          <Route path="write-letter/:Email" element={<WriteLetter />} />
           <Route path="create-task" element={<CreateTask />} />
           <Route path="message" element={<Mess />} />
           <Route path="task" element={<Task />} />
           <Route path="contacts" element={<Contacts />} />
           <Route path="magazine" element={<Magazine />} />
+          <Route path="menejment" element={<Menejment />} />
+          <Route path="otchot" element={<Otchot />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
