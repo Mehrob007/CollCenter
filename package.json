@@ -10,9 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@handsontable/react": "^14.5.0",
     "antd": "^5.20.3",
     "axios": "^1.7.4",
+    "dompurify": "^3.1.6",
+    "handsontable": "^14.5.0",
     "jquery": "^3.7.1",
+    "jsdom": "^25.0.0",
     "jssip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
@@ -22,6 +26,7 @@
     "react-sip": "^0.8.1",
     "react-toastify": "^10.0.5",
     "sip.js": "^0.21.2",
+    "xlsx": "^0.18.5",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

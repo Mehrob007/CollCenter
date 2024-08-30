@@ -25,6 +25,7 @@ import WriteLetter from '../../components/layout/page/WriteLetter'
 import CreateTask from '../../components/layout/page/CreateTask'
 import Menejment from '../../components/layout/page/pageDop/Menejment';
 import Otchot from '../../components/layout/page/pageDop/Otchot';
+import AddContact from '../../components/layout/page/AddContact';
 
 export default function Router() {
   
@@ -45,10 +46,12 @@ export default function Router() {
           <Route path="create-task" element={<CreateTask />} />
           <Route path="message" element={<Mess />} />
           <Route path="task" element={<Task />} />
+          <Route path="task/:status" element={<Task />} />
           <Route path="contacts" element={<Contacts />} />
           <Route path="magazine" element={<Magazine />} />
           <Route path="menejment" element={<Menejment />} />
           <Route path="otchot" element={<Otchot />} />
+          <Route path="add-contacts" element={<AddContact />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -5,6 +5,7 @@ import apiClient from '../../../utils/api';
 import { LuDatabaseBackup } from 'react-icons/lu';
 import { Modal } from 'antd';
 import cloasX from '../../../assets/icon/x.svg'
+import createDOMPurify from 'dompurify'
 
 export default function Mess() {
   const [vibor, setVibor] = useState(true)
@@ -19,6 +20,8 @@ export default function Mess() {
   const [open, setOpen] = useState(false)
   const [dataMessage, setDataMessage] = useState();
   const navigate = useNavigate()
+
+  const DOMPurify = createDOMPurify(window)
 
   async function fetchData() {
     try {
@@ -95,7 +98,7 @@ export default function Mess() {
             <img src={cloasX} alt="cloasX" />
           </button>
           <div className='messageDataModal'>
-            <p>{dataMessage.body}</p>
+            { <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(dataMessage.body) }} /> }
           </div>
         </Modal>
       )}

@@ -16,7 +16,8 @@ export default function CreateTask() {
         idUsers: [],
         idPreoritet: '',
         idStatus: '',
-        interactionId: ''
+        interactionId: '',
+
     });
     const [options, setOptions] = useState([]);
     const [data, setData] = useState([]);
@@ -35,6 +36,8 @@ export default function CreateTask() {
             [name]: value
         }));
     };
+    console.log(formData);
+
     const validateForm = () => {
         const { to, description, startDate, deadline } = formData;
         const today = new Date().toISOString().split('T')[0];
@@ -182,14 +185,14 @@ export default function CreateTask() {
     };
     const scrollHandler = (e) => {
         const target = e.target;
-        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 && data.length  && !fetching) {
+        if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 && data.length && !fetching) {
             setFetching(true);
         }
     };
     useEffect(() => {
         fetchData()
     }, [])
-     useEffect(() => {
+    useEffect(() => {
         if (fetching) {
             fetchData();
         }
@@ -236,10 +239,10 @@ export default function CreateTask() {
     const getDataSelectLine = async () => {
         const token = localStorage.getItem('accessToken');
         // console.log(token);
-        
+
         try {
             const response = await apiClient.get(
-                `api/interactions/all?pagination.limit=50&pagination.page=${currentPage2}`, 
+                `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -308,7 +311,7 @@ export default function CreateTask() {
             const arr = response.data.interactions.map(el => [
                 { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
             ])
-                        
+
             setArrObjactInteractionId(...arr)
         } catch (error) {
             console.error("Ошибка при загрузке данных:", error);
@@ -319,12 +322,26 @@ export default function CreateTask() {
     const scrollHandler2 = (e) => {
         const target = e.target;
         if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 ) {
+            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
                 console.log('scroll');
                 setFetching2(true)
             }
         }
     };
+
+    // const getDataSearch = async (value) => {
+    //     // const res = await apiClient.post(`api/`)
+
+    //     console.log(value);
+        
+
+
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         interactionId: value
+    //     }));
+
+    // }
     useEffect(() => {
         getDataSelectLine()
     }, [])
@@ -338,86 +355,100 @@ export default function CreateTask() {
                 <h1>Создать задачу</h1>
             </div>
             <form className='formDataWL' onSubmit={funSendLetter}>
-                <Select
-                    showSearch
-                    style={{ width: '100%' }}
-                    placeholder="Взаимодействие"
-                    optionFilterProp="label"
-                    filterSort={(optionA, optionB) =>
-                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                    }
-                    onChange={(value) => {
-                        setFormData((prev) => ({
-                            ...prev,
-                            interactionId: value
-                        }));
-                    }}
-                    options={arrObjactInteractionId}
-                    onPopupScroll={scrollHandler2}
-                />
-                <input
-                    name="to"
-                    placeholder='Название задачи'
-                    type="text"
-                    value={formData.to}
-                    onChange={handleChange}
-                />
-                <Space onScroll={scrollHandler} style={{ width: '100%' }} direction="vertical">
-                    <Select
-                        mode="multiple"
-                        allowClear
-                        style={{ width: '100%', height: '50px' }}
-                        placeholder="Исполнитель"
-                        onChange={(value) => {
-                            setFormData((prev) => ({
-                                ...prev,
-                                idUsers: value
-                            }));
-                        }}
-                        options={!loading && options}
-                    />
-                </Space>
-
-                <div className='StatusPrioritet'>
+                <div>
+                    <label>Взаимодействие</label>
                     <Select
                         showSearch
-                        style={{ width: 220 }}
-                        placeholder="Приоритет"
+                        style={{ width: '100%' }}
+                        placeholder="Взаимодействие"
                         optionFilterProp="label"
                         filterSort={(optionA, optionB) =>
                             (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                         }
-                        onChange={(value) => {
-                            setFormData((prev) => ({
-                                ...prev,
-                                idPreoritet: value
-                            }));
-                        }}
-                        options={ApplicationTaskPriority}
-                    />
-                    <Select
-                        showSearch
-                        style={{ width: 220 }}
-                        placeholder="Статус"
-                        optionFilterProp="label"
-                        filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                        }
-                        onChange={(value) => {
-                            setFormData((prev) => ({
-                                ...prev,
-                                idStatus: value
-                            }));
-                        }}
-                        options={ApplicationTaskStatus}
+                        onChange={(value) => getDataSearch(value)}
+                        options={arrObjactInteractionId}
+                        onPopupScroll={scrollHandler2}
                     />
                 </div>
-                <textarea
-                    name="description"
-                    placeholder='Описание'
-                    value={formData.description}
-                    onChange={handleChange}
-                ></textarea>
+                <div>
+                    <label>Название задачи</label>
+                    <input
+                        name="to"
+                        placeholder='Название задачи'
+                        type="text"
+                        value={formData.to}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label>Исполнитель</label>
+                    <Space onScroll={scrollHandler} style={{ width: '100%' }} direction="vertical">
+                        <Select
+                            mode="multiple"
+                            allowClear
+                            style={{ width: '100%', height: '50px' }}
+                            placeholder="Исполнитель"
+                            onChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    idUsers: value
+                                }));
+                            }}
+                            options={!loading && options}
+                        />
+                    </Space>
+                </div>
+
+                <div className='StatusPrioritet'>
+                    <div>
+                        <label >Приоритет</label>
+                        <Select
+                            showSearch
+                            style={{ width: 220 }}
+                            placeholder="Приоритет"
+                            optionFilterProp="label"
+                            filterSort={(optionA, optionB) =>
+                                (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                            }
+                            onChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    idPreoritet: value
+                                }));
+                            }}
+                            options={ApplicationTaskPriority}
+                        />
+                    </div>
+                    <div>
+                        <label>Статус</label>
+                        <Select
+                            showSearch
+                            style={{ width: 220 }}
+                            placeholder="Статус"
+                            optionFilterProp="label"
+                            filterSort={(optionA, optionB) =>
+                                (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                            }
+                            onChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    idStatus: value
+                                }));
+                            }}
+                            options={ApplicationTaskStatus}
+                        />
+
+                    </div>
+                </div>
+                <div className='textareaformCreate'>
+                    <label>Описание</label>
+                    <textarea
+                        name="description"
+                        placeholder='Описание'
+                        value={formData.description}
+                        onChange={handleChange}
+                    ></textarea>
+                </div>
                 <div className='inputData'>
                     <label htmlFor="startDate">Начало</label>
                     <input
@@ -439,6 +470,7 @@ export default function CreateTask() {
                         onChange={handleChange}
                     />
                 </div>
+
                 <div className='btnRedialDiv'>
                     <button type="submit">Сохранить</button>
                     <Link to='/task'>Отмена</Link>

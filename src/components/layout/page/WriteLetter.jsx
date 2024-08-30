@@ -43,7 +43,7 @@ export default function WriteLetter() {
     function validateForm() {
         // Regular expression for basic email validation
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
         if (!formData.recipient || !formData.subject || !formData.description) {
             toast.error('Заполните все обязательные поля', {
                 position: "top-right",
@@ -70,10 +70,10 @@ export default function WriteLetter() {
             });
             return false;
         }
-    
+
         return true;
     }
-    
+
     async function funSendLetter(e) {
         e.preventDefault();
         let token = localStorage.getItem('accessToken');
@@ -110,14 +110,14 @@ export default function WriteLetter() {
             }
         }
     }
-   
+
     const getDataSelectLine = async () => {
         const token = localStorage.getItem('accessToken');
         // console.log(token);
-        
+
         try {
             const response = await apiClient.get(
-                `api/email/email-credentials/all?pagination.limit=50&pagination.page=${currentPage}`, 
+                `api/email/email-credentials/all?pagination.limit=50&pagination.page=${currentPage}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -140,13 +140,13 @@ export default function WriteLetter() {
     const scrollHandler = (e) => {
         const target = e.target;
         if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 ) {
+            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
                 console.log('scroll');
                 setFetching(true)
             }
         }
     };
-    
+
     useEffect(() => {
         getDataSelectLine()
     }, [fetching]);
@@ -156,49 +156,61 @@ export default function WriteLetter() {
                 <h1>Отправить новое письмо</h1>
             </div>
             <form className='formDataWL' onSubmit={funSendLetter}>
-                <Select
-                    showSearch
-                    style={{ width: 220 }}
-                    placeholder="Аккаунт"
-                    optionFilterProp="children"
-                    filterSort={(optionA, optionB) =>
-                        (optionA?.children ?? '').toLowerCase().localeCompare((optionB?.children ?? '').toLowerCase())
-                    }
-                    onChange={(value) =>
-                        setFormData((prevData) => ({
-                            ...prevData,
-                            emailCredentialId: value,
-                        }))
-                    }
-                    onPopupScroll={scrollHandler} 
-                >
-                    {arrObjactInteractionId && arrObjactInteractionId.map((item, i) => (
-                        <Option key={i} value={item.value}>
-                            {item.label}
-                        </Option>
-                    ))}
-                </Select>
-                <input
-                    placeholder='Кому (через запятую для нескольких адресов)'
-                    type="text"
-                    name="recipient"
-                    // defaultValue={Email}
-                    value={Email || formData.recipient}
-                    onChange={handleChange}
-                />
-                <input
-                    placeholder='Тема'
-                    type="text"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                />
-                <textarea
-                    placeholder='Описание'
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                ></textarea>
+                <div>
+                    <label >Аккаунт</label> <br />
+                    <Select
+                        showSearch
+                        style={{ width: 220 }}
+                        placeholder="Аккаунт"
+                        optionFilterProp="children"
+                        filterSort={(optionA, optionB) =>
+                            (optionA?.children ?? '').toLowerCase().localeCompare((optionB?.children ?? '').toLowerCase())
+                        }
+                        onChange={(value) =>
+                            setFormData((prevData) => ({
+                                ...prevData,
+                                emailCredentialId: value,
+                            }))
+                        }
+                        onPopupScroll={scrollHandler}
+                    >
+                        {arrObjactInteractionId && arrObjactInteractionId.map((item, i) => (
+                            <Option key={i} value={item.value}>
+                                {item.label}
+                            </Option>
+                        ))}
+                    </Select>
+                </div>
+                <div>
+                    <label >Кому (через запятую для нескольких адресов)</label>
+                    <input
+                        placeholder='Кому (через запятую для нескольких адресов)'
+                        type="text"
+                        name="recipient"
+                        // defaultValue={Email}
+                        value={Email || formData.recipient}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label >Тема</label>
+                    <input
+                        placeholder='Тема'
+                        type="text"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label >Описание</label>
+                    <textarea
+                        placeholder='Описание'
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                    ></textarea>
+                </div>
 
                 <div>
                     <input

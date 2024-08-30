@@ -74,7 +74,7 @@ export default function Magazine() {
         <div>
           <button onClick={() => setVibor(1)} style={{ background: vibor == 1 ? '#2EA0FF' : 'transparent', color: vibor == 1 ? 'white' : 'black' }}>Входящие</button>
           <button onClick={() => setVibor(2)} style={{ background: vibor == 2 ? '#2EA0FF' : 'transparent', color: vibor == 2 ? 'white' : 'black' }}>Исходящие</button>
-          <button onClick={() => setVibor(3)} style={{ background: vibor == 3 ? '#2EA0FF' : 'transparent', color: vibor == 3 ? 'white' : 'black' }}>Пропущенные</button>
+          {/* <button onClick={() => setVibor(3)} style={{ background: vibor == 3 ? '#2EA0FF' : 'transparent', color: vibor == 3 ? 'white' : 'black' }}>Пропущенные</button> */}
         </div>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>

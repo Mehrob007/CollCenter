@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import JsSIP from 'jssip';
 import iconCollBtn from '../../../assets/icon/iconCollBtn.svg';
 import callout from '../../../assets/icon/callout.svg'
 import { Bounce, Flip, toast } from 'react-toastify';
 import { Button, Modal } from 'antd';
 import { getToken } from '../../store/StoreGetToken';
+import { jwtDecode } from 'jwt-decode';
+import apiClient from '../../../utils/api';
 // import apiClient from '../../../utils/api';
 // import axios from 'axios';
 // import { jwtDecode } from 'jwt-decode';
@@ -18,15 +20,15 @@ export default function Coll() {
   const { refreshAccessToken } = getToken()
   const inputRef = useRef(null);
   const audioRef = useRef(null);
-useEffect(() => {
-  refreshAccessToken()
-  const performAction = () => {
+  useEffect(() => {
+    refreshAccessToken()
+    const performAction = () => {
       console.log("Функция выполнена");
       refreshAccessToken()
-  };
-  const intervalId = setInterval(performAction, 14 * 60 * 1000);
-  return () => clearInterval(intervalId);
-}, []);
+    };
+    const intervalId = setInterval(performAction, 14 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const allowedChars = /[^0-9#*]/g;
 
@@ -35,7 +37,14 @@ useEffect(() => {
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [open, setOpen] = useState(false);
+  const [ua, setUA] = useState(null);
 
+  const [loading, setLoading] = useState();
+  const [data, setData] = useState();
+  const [loading2, setLoading2] = useState();
+  const [data2ExtensionSecret, setData2] = useState();
+
+  const { navigate } = useNavigate();
   useEffect(() => {
     let interval = null;
 
@@ -59,42 +68,6 @@ useEffect(() => {
     setSeconds(0);
   };
 
-  // JsSIP.debug.enable('JsSIP:*');
-  const socket = new JsSIP.WebSocketInterface('wss://192.168.1.126:8089/ws');
-  const configuration = {
-    sockets: [socket],
-    uri: '200@192.168.1.126',
-    password: '765b377c05d8cea4fbaaadb5193bfb69',
-  };
-  const ua = new JsSIP.UA(configuration);
-
-  ua.on("newRTCSession", function (data) {
-    var session = data.session;
-    setGsessions(session);
-
-    if (session.direction === "incoming") {
-      // incoming call here
-      session.on("accepted", function () {
-        // the call has answered
-      });
-      session.on("confirmed", function () {
-        setOpen(true);
-      });
-      session.on("ended", function () {
-        // the call has ended
-      });
-      session.on("failed", function () {
-        // unable to establish the callx
-      });
-      session.on('addstream', function (e) {
-        audioRef.current.srcObject = e.stream
-        audioRef.current.play()
-      });
-    }
-  });
-
-  ua.start();
-
   const handleInputChange = (event) => {
     const cleanedValue = event.target.value.replace(allowedChars, '');
     setValueInput(cleanedValue);
@@ -108,7 +81,7 @@ useEffect(() => {
   };
 
   // Function to initiate a call
-  const handleCall = ( valueInput ) => {
+  const handleCall = (valueInput) => {
     if (valueInput.length !== 9) {
       toast.error('Номер введен неправильно!', {
         position: "top-right",
@@ -216,94 +189,125 @@ useEffect(() => {
 
 
 
+  async function fetchData2() {
+
+  }
 
 
 
+  async function fetchData() {
+    let accountData = null;
+    let extensionSecret = null;
 
+    try {
+      const token = localStorage.getItem('accessToken')
+      const decodedHeader = jwtDecode(token)
+      const id = decodedHeader["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+      setLoading(true)
+      if (token) {
+        const response = await apiClient.get(`/api/users?id=${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        accountData = response.data.extensionNumber;
+        console.log(response.data.extensionNumber);
+      } else {
+        console.error('Access token is missing')
+      }
+    } catch (error) {
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
 
-  // const [data, setData] = useState(null)
-  // const [loading, setLoading] = useState(true)
-  // const { refreshAccessToken } = getToken()
-  // const [tokenD, settokenD] = useState('')
+      }
+    } finally {
+      setLoading(false)
+    }
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('accessToken')
-  //   if (token) {
-  //     setTokenRefreshTimer()
-  //   }
+    try {
+      const token = localStorage.getItem('accessToken')
+      setLoading2(true)
+      if (token) {
+        const response = await apiClient.get(`/api/users/get-extension-secret`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        extensionSecret = response.data.extensionSecret;
+        console.log(response.data);
+      } else {
+        console.error('Access token is missing')
+      }
+    } catch (error) {
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
 
-  //   window.onload = () => fetchData()
-  // }, [])
+      }
+    } finally {
+      setLoading2(false)
+    }
 
-  // async function fetchData() {
-  //   try {
-  //     const token = getToken()
+    JsSIP.debug.enable('JsSIP:*');
+    const socket = new JsSIP.WebSocketInterface('wss://192.168.1.129:8089/ws');
+    const configuration = {
+      sockets: [socket],
+      uri: `${accountData}@192.168.1.129`,
+      password: extensionSecret
+    };
+    const ua = new JsSIP.UA(configuration);
 
-  //     console.error(token)
+    ua.on("newRTCSession", function (data) {
+      var session = data.session;
+      setGsessions(session);
 
-  //     const decodedHeader = jwtDecode(token)
-  //     const id = decodedHeader["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
-  //     setLoading(true)
-  //     if (token) {
-  //       const response = await apiClient.get(`/api/users?id=${id}`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       })
-  //       setData(response.data)
-  //       console.log(response.data);
+      if (session.direction === "incoming") {
+        // incoming call here
+        session.on("accepted", function () {
+          // the call has answered
+        });
+        session.on("confirmed", function () {
+          setOpen(true);
+        });
+        session.on("ended", function () {
+          // the call has ended
+        });
+        session.on("failed", function () {
+          // unable to establish the callx
+        });
+        session.on('addstream', function (e) {
+          audioRef.current.srcObject = e.stream
+          audioRef.current.play()
+        });
+      }
+    });
 
-  //     } else {
-  //       console.error('Access token is missing')
-  //     }
-  //   } catch (err) {
-  //     console.error(err)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
+    setUA(ua);
 
-  // function setTokenRefreshTimer() {
-  //   clearTimeout(window.tokenRefreshTimer)
-  //   window.tokenRefreshTimer = setTimeout(() => {
-  //     refreshAccessToken()
-  //   }, 60000) // Adjust time as necessary
-  // }
+    ua.start();
+  }
 
+  const getData = async () => {
+    await fetchData()
+    await fetchData2()
 
-  // axios.interceptors.request.use(
-  //   async (config) => {
-  //     const token = localStorage.getItem('accessToken')
-  //     if (token) {
-  //       config.headers['Authorization'] = `Bearer ${token}`
-  //     }
-  //     return config
-  //   },
-  //   (error) => {
-  //     return Promise.reject(error)
-  //   }
-  // )
+  }
 
-  // axios.interceptors.response.use(
-  //   (response) => {
-  //     return response
-  //   },
-  //   async (error) => {
-  //     const originalRequest = error.config
-  //     if (error.response.status === 401 && !originalRequest._retry) {
-  //       originalRequest._retry = true
-  //       const newToken = await refreshAccessToken()
-  //       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
-  //       console.log(newToken)
-  //       return axios(originalRequest)
-  //     }
-  //     return Promise.reject(error)
-  //   }
-  // )
+  useEffect(() => { getData() }, [])
 
-  
   useEffect(() => {
-    if(numbers){
+    if (numbers) {
       handleCall(numbers)
     }
   }, [numbers])
@@ -312,7 +316,7 @@ useEffect(() => {
       <Modal
         open={open}
         title={gsessions?.remote_identity.display_name}
-        footer={(_, { OkBtn, CancelBtn }) => (
+        footer={() => (
           <>
             <div className='btnCallinBack'>
 
@@ -380,3 +384,4 @@ useEffect(() => {
     </div>
   );
 }
+

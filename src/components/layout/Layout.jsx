@@ -27,6 +27,8 @@ export default function Layout() {
                     },
                 })
                 setData(response.data)
+                console.log(response.data);
+                
                 setRestart(false)
             } else {
                 console.error('Access token is missing')
