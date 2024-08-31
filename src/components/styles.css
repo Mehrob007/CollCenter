@@ -954,12 +954,58 @@ input:focus, textarea:focus{
     height: 18px;
     cursor: pointer;
 }
+.box-modal-create-elements > div{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 9px;
+}
+.box-modal-create-elements > div > h3{
+    font-family: Montserrat;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 25.6px;
+    text-align: center;
+    color: #333;
+}
+.box-modal-create-elements > div > p{
+    font-family: Montserrat;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 19.5px;
+    text-align: center;
+}
 .box-modal-createing-elements{
     display: flex;
     flex-direction: column;
     gap: 20px;
     margin-top: 30px;
     margin-bottom: 44px;
+}
+.infoModalMag{
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+.infoModalMag > div > label{
+    color: #ccc;
+    font-family: Montserrat;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.94px;
+    text-align: left;
+
+}
+.infoModalMag > div > p{
+    margin-top: 12px;
+    font-family: Montserrat;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 24.38px;
+    text-align: left;
+
 }
 .textareaformCreate{
     display: flex;

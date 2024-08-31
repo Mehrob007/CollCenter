@@ -56,8 +56,9 @@ export default function Task() {
 
       console.log(`THIS STATUS IS ${status}`);
 
-      setData([]);
-
+      if(anotherStatus){
+        setData([]);
+      }
       const token = localStorage.getItem('accessToken');
       setLoading(true);
       if (token) {
@@ -175,7 +176,7 @@ export default function Task() {
     if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
       if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
         console.log('scroll');
-        setFetching2(true)
+        setFetching2(true);
       }
     }
   };
@@ -420,7 +421,6 @@ export default function Task() {
       </Modal>
       <div className="mainTask">
         <h1>Задачи</h1>
-
         <Link to='/create-task' className='linkMess'>Создать задачу</Link>
       </div>
       <div className='mainMess' style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
