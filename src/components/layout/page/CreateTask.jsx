@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Bounce } from 'react-toastify';
@@ -28,6 +28,7 @@ export default function CreateTask() {
     const [currentPage2, setCurrentPage2] = useState(1);
     const [fetching2, setFetching2] = useState(false);
     const { refreshAccessToken } = getToken();
+    const { interactionId } = useParams()
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -114,13 +115,7 @@ export default function CreateTask() {
         { label: 'Средний', value: 1 },
         { label: 'Высокий', value: 2 }
     ];
-    const [arrObjactInteractionId, setArrObjactInteractionId] = useState([
-        { label: '1', value: 1 },
-        { label: '2', value: 2 },
-        { label: '3', value: 3 },
-        { label: '4', value: 4 },
-        { label: '5', value: 5 },
-    ]);
+    const [arrObjactInteractionId, setArrObjactInteractionId] = useState([]);
 
     const ApplicationTaskStatus = [
         { label: 'Отложено', value: 0 },
@@ -308,11 +303,16 @@ export default function CreateTask() {
             //       "interactionDate": "string"
             //     }
             //   ]
-            const arr = response.data.interactions.map(el => [
-                { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
-            ])
+            // Создаём новый массив объектов, добавляя новые элементы
+            const newArr = response.data.interactions.map(el => ({
+                value: el.id,
+                label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} `
+            }));
 
-            setArrObjactInteractionId(...arr)
+            // Объединяем существующий массив с новым и обновляем состояние
+            setArrObjactInteractionId(prev => [...prev, ...newArr]);
+
+
         } catch (error) {
             console.error("Ошибка при загрузке данных:", error);
         } finally {
@@ -329,11 +329,15 @@ export default function CreateTask() {
         }
     };
 
+    const uniqueOptions = arrObjactInteractionId.filter((item, index, self) =>
+        index === self.findIndex((t) => t.value === item.value)
+    );
+
     // const getDataSearch = async (value) => {
     //     // const res = await apiClient.post(`api/`)
 
     //     console.log(value);
-        
+
 
 
     //     setFormData((prev) => ({
@@ -348,6 +352,12 @@ export default function CreateTask() {
     useEffect(() => {
         getDataSelectLine()
     }, [fetching2]);
+    const defData = uniqueOptions.find(el => el.value == interactionId);
+
+    console.log(defData);
+
+    // Если 
+
     return (
         <div className='WriteLetter'>
             <ToastContainer />
@@ -357,18 +367,20 @@ export default function CreateTask() {
             <form className='formDataWL' onSubmit={funSendLetter}>
                 <div>
                     <label>Взаимодействие</label>
-                    <Select
-                        showSearch
-                        style={{ width: '100%' }}
-                        placeholder="Взаимодействие"
-                        optionFilterProp="label"
-                        filterSort={(optionA, optionB) =>
-                            (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                        }
-                        onChange={(value) => getDataSearch(value)}
-                        options={arrObjactInteractionId}
-                        onPopupScroll={scrollHandler2}
-                    />
+                    {uniqueOptions &&
+                        <Select
+                            showSearch
+                            style={{ width: '100%' }}
+                            placeholder="Взаимодействие"
+                            optionFilterProp="label"
+                            defaultValue={defData !== undefined && defData}
+                            filterSort={(optionA, optionB) =>
+                                (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                            }
+                            onChange={(value) => console.log(value)}
+                            options={uniqueOptions}
+                            onPopupScroll={scrollHandler2}
+                        />}
                 </div>
                 <div>
                     <label>Название задачи</label>

@@ -6,10 +6,11 @@ import miniCall from '../../../assets/icon/miniCall.svg'
 import cloasX from '../../../assets/icon/x.svg'
 import { getToken } from '../../store/StoreGetToken'
 import apiClient from '../../../utils/api'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Bounce, toast, ToastContainer } from 'react-toastify'
 
 export default function Сontacts() {
+  const { poiskNumber } = useParams()
   const [dataModalG, setDataModalG] = useState();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -35,7 +36,7 @@ export default function Сontacts() {
   const [poisk, setPoisk] = useState('');
   const [poiskSurNeme, setPoiskSurNeme] = useState('');
   const [poiskMiaddleName, setPoiskMiaddleName] = useState('');
-  const [poiskPhone, setPoiskPhone] = useState('');
+  const [poiskPhone, setPoiskPhone] = useState(poiskNumber || '');
 
   const [restart, setRestart] = useState(false)
   const navigate = useNavigate()
@@ -50,7 +51,7 @@ export default function Сontacts() {
     })
   }
 
-console.log(formData.fields);
+  console.log(formData.fields);
 
 
 
@@ -59,77 +60,77 @@ console.log(formData.fields);
 
     // Проверка на наличие всех обязательных полей
     if (!formData.firstName || !formData.lastName || !formData.phone || !formData.middleName) {
-        toast.error('Заполните необходимые поля', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Bounce,
-        });
-        return; // Остановка выполнения функции, если валидация не пройдена
+      toast.error('Заполните необходимые поля', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return; // Остановка выполнения функции, если валидация не пройдена
     }
 
     // Дополнительная валидация для email
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-        toast.error('Введите корректный email', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Bounce,
-        });
-        return; // Остановка выполнения функции, если валидация не пройдена
+      toast.error('Введите корректный email', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return; // Остановка выполнения функции, если валидация не пройдена
     }
 
     // Проверка на наличие хотя бы одного поля в массиве fields
     if (formData.fields.length === 0 || !formData.fields[0].name || !formData.fields[0].value) {
-        toast.error('Добавьте хотя бы одно поле', {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Bounce,
-        });
-        return; // Остановка выполнения функции, если валидация не пройдена
+      toast.error('Добавьте хотя бы одно поле', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      return; // Остановка выполнения функции, если валидация не пройдена
     }
 
     // Основной код для создания или обновления контакта
     if (IDModal && token) {
-        try {
-            const res = await apiClient.put(`api/contacts/?id=${IDModal}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}&email=${formData.email}&description=${formData.description}&fields=${JSON.stringify(formData.fields)}`, null, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            console.log(res);
-            setOpenCreate(false);
-            navigate(0);
-        } catch (error) {
-            console.error(error);
-            if (error.response && error.response.status === 401) {
-                let accessToken = await refreshAccessToken();
-                let booleanRes = Boolean(accessToken);
-                if (booleanRes) {
-                    setRestart(true);
-                } else {
-                    console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
-                }
-            }
+      try {
+        const res = await apiClient.put(`api/contacts/?id=${IDModal}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}&email=${formData.email}&description=${formData.description}&fields=${JSON.stringify(formData.fields)}`, null, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        console.log(res);
+        setOpenCreate(false);
+        navigate(0);
+      } catch (error) {
+        console.error(error);
+        if (error.response && error.response.status === 401) {
+          let accessToken = await refreshAccessToken();
+          let booleanRes = Boolean(accessToken);
+          if (booleanRes) {
+            setRestart(true);
+          } else {
+            console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
+          }
         }
+      }
     }
-};
+  };
 
   const getModalDataContact = async (dataModalID) => {
     let token = localStorage.getItem('accessToken')
@@ -154,7 +155,7 @@ console.log(formData.fields);
         description: res.data.description || '',
         fields: [{ name: '', value: '', id: 1 }] // Default to an empty field if not provided
       });
-      
+
     } catch (error) {
       console.error(error);
       if (error.response.status === 401) {
@@ -200,45 +201,57 @@ console.log(formData.fields);
     try {
       let token = localStorage.getItem('accessToken');
       setLoading(true);
+      let countPage = 1
+
       if (token) {
         if (el) {
-          setCurrentPage(0);
+          setCurrentPage(0); // Сброс страницы до запроса
+          countPage = 1
         }
-        const response = await apiClient.get(`/api/contacts/all?${poisk != '' ? `name=${poisk}&` : ''}${poiskSurNeme != '' ? `surname=${poiskSurNeme}&` : ''}${poiskMiaddleName != '' ? `middleName=${poiskMiaddleName}&` : ''}${poiskPhone != '' ? `phone=${poiskPhone}&` : ''}pagination.limit=25&pagination.page=${currentPage}`, {
+
+        const response = await apiClient.get(`/api/contacts/all?${poisk !== '' ? `name=${poisk}&` : ''}${poiskSurNeme !== '' ? `surname=${poiskSurNeme}&` : ''}${poiskMiaddleName !== '' ? `middleName=${poiskMiaddleName}&` : ''}${poiskPhone !== '' ? `phone=${poiskPhone}&` : ''}pagination.limit=25&pagination.page=${!el ? currentPage : countPage}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        let dataL = [...data, ...response.data.contacts];
+
+        // Удаление дубликатов на основе id
+        const uniqueDataL = dataL.filter((item, index, self) =>
+          index === self.findIndex((t) => t.id === item.id)
+        );
+
+        console.log(uniqueDataL);
+
+
+
         if (Array.isArray(response.data.contacts)) {
           if (el) {
-            setData(response.data.contacts)
+            setData(response.data.contacts);
+            setCurrentPage(1); // Устанавливаем страницу на 1 после получения данных
           } else {
-            setData((prev) => [...prev, ...response.data.contacts])
+            // [...new Set(arrayWithDuplicates)]
+            setData(uniqueDataL);
+            setCurrentPage((prev) => prev + 1); // Инкрементируем страницу после добавления данных
           }
+          countPage = countPage + 1
         } else {
           console.error('Ожидался массив, но получен другой тип данных:', response.data.contacts);
         }
-        console.log(response.data);
-        if (el) {
-          setCurrentPage((el) => el + 1);
-        } else {
-          setCurrentPage(1);
-        }
-        poisk.length > 0 && poiskSurNeme.length > 0 && poiskMiaddleName.length > 0 && poiskPhone.length > 0 && setCurrentPage(1)
+
         setTotalCount(response.headers['x-total-count']);
       } else {
         console.error('Access token отсутствует');
       }
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
-      if (error.response.status === 401) {
+
+      if (error.response && error.response.status === 401) {
         let accessToken = await refreshAccessToken();
-        let booleanRes = Boolean(accessToken);
-        if (booleanRes) {
-          setFetching(true)
+        if (accessToken) {
+          setFetching(true);
+          console.log(`Аксес токен обновлен: ${accessToken}`);
         }
-        console.log(error.response.status);
-        console.log(`Аксес токен обнавлен: ${accessToken}`);
       }
     } finally {
       setLoading(false);
@@ -246,11 +259,13 @@ console.log(formData.fields);
     }
   }
 
+
   const scrollHandler = (e) => {
     console.log('scroll');
     const target = e.target;
-    if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && data.length < totalCount) {
+    if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1 && data.length) {
       setFetching(true);
+
     }
   };
   const OpneModalInfo = (id) => {
@@ -260,7 +275,7 @@ console.log(formData.fields);
   }
   const handleChangeFields = (el, id) => {
     const { name, value } = el.target;
-  
+
     const newData = formData.fields.map((prev) => {
       if (prev.id === id) {
         return { ...prev, [name]: value }; // Fix here: Spread prev correctly
@@ -268,22 +283,30 @@ console.log(formData.fields);
         return prev;
       }
     });
-  
+
     setFormData((prevState) => ({
       ...prevState,
       fields: newData,
     }));
   };
-  
+
   const addFields = (id) => {
     setFormData((prevState) => ({
       ...prevState,
       fields: [...prevState.fields, { name: '', value: '', id }],
     }));
   };
+  const removeFields = (id) => {
+  setFormData((prevState) => ({
+    ...prevState,
+    fields: prevState.fields.filter(el => el.id !== id),
+  }));
+}
+
   useEffect(() => {
     if (fetching) {
-      fetchData();
+      // setCurrentPage(el => el + 1)
+      fetchData(false);
     }
   }, [fetching]);
   return (<>
@@ -401,15 +424,32 @@ console.log(formData.fields);
               <div key={el.id} className='fields'>
                 <div>
                   <label>имя</label>
-                  <input value={el.name} name='name' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
+                  <input
+                    value={el.name}
+                    name='name'
+                    onChange={(event) => handleChangeFields(event, el.id)}
+                    type="text"
+                  />
                 </div>
                 <div>
                   <label>значение</label>
-                  <input value={el.value} name='value' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
+                  <input
+                    value={el.value}
+                    name='value'
+                    onChange={(event) => handleChangeFields(event, el.id)}
+                    type="text"
+                  />
+                  
                 </div>
-                {formData.fields.length === el.id && <nav onClick={() => addFields(el.id + 1)}>+</nav>}
+                {el.id !=  formData.fields[0].id && (
+                  <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
+                )}
               </div>
             ))}
+               {formData.fields.length && (
+                  <nav className='addFields' onClick={() => addFields(formData.fields.length + 1)}>+</nav>
+                )}
+                
 
           </div>
 
@@ -433,8 +473,11 @@ console.log(formData.fields);
           <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskMiaddleName(el.target.value)} placeholder='Поиск по очества' type="text" />
         </nav>
         <nav style={{ maxWidth: '350px', widows: '100%', display: "flex", justifyContent: 'center' }}>
-          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskPhone(el.target.value)} placeholder='Поиск по номеру' type="text" />
-          <button className='btnPoisk' style={{ marginLeft: '10px' }} onClick={() => fetchData('p')}>
+          <input style={{ width: '100%' }} className='inputContentSearch' onChange={(el) => setPoiskPhone(el.target.value)} value={poiskPhone} placeholder='Поиск по номеру' type="text" />
+          <button className='btnPoisk' style={{ marginLeft: '10px' }} onClick={() => {
+            setCurrentPage(0);
+            fetchData(true)
+          }}>
             <img src={SearchIcon} className='SearchIcon' alt="SearchIcon" />
           </button>
         </nav>
@@ -463,7 +506,7 @@ console.log(formData.fields);
         </div>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {loading ? (<p>Loading...</p>) : data.map((prev, i) => (
+        {data?.map((prev, i) => (
           <div key={i} className="liMess">
             <div>
               <input type="text" value={prev.name} onChange={() => { }} />

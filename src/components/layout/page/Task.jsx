@@ -484,6 +484,7 @@ export default function Task() {
           <h1>{prev.startDate.split('T')[0]}</h1>
         </div>
       )) : <p>loading...</p>} */}
+      <div className="ulLiDataMessHeader">
       {!loading ? data.map((prev, i) => (
         <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
           <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
@@ -495,6 +496,7 @@ export default function Task() {
           <h1>{prev.startDate.split('T')[0]}</h1>
         </div>
       )) : <div>loading...</div>}
+      </div>
     </div>
   );
 }

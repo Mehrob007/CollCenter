@@ -44,10 +44,12 @@ export default function Router() {
           <Route path="write-letter" element={<WriteLetter />} />
           <Route path="write-letter/:Email" element={<WriteLetter />} />
           <Route path="create-task" element={<CreateTask />} />
+          <Route path="create-task/:interactionId" element={<CreateTask />} />
           <Route path="message" element={<Mess />} />
           <Route path="task" element={<Task />} />
           <Route path="task/:status" element={<Task />} />
           <Route path="contacts" element={<Contacts />} />
+          <Route path="contacts/:poiskNumber" element={<Contacts />} />
           <Route path="magazine" element={<Magazine />} />
           <Route path="menejment" element={<Menejment />} />
           <Route path="otchot" element={<Otchot />} />

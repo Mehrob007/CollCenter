@@ -58,6 +58,7 @@ export default function Layout() {
         localStorage.removeItem('refreshToken')
         navigate(0)
     }
+    
     return (
         <div className="bigBox">
             <header style={{ width: openHeader ? '390px' : '150px' }}>
@@ -75,13 +76,14 @@ export default function Layout() {
                         <div className="person">
                             <BsPersonCircle />
                         </div>
-                        <div className="personInfo" style={{ minWidth: openHeader ? '70px' : '0px' }}>
+                        <div className="personInfo" style={{ minWidth: openHeader ? '110px' : '0' }}>
                             {loading ? (
                                 <h1>Loading...</h1>
                             ) : (
                                 <>
                                     <h1>{data?.name} {data?.surname[0]}.</h1>
                                     <p>{data?.role}</p>
+                                    <h2>{data?.extensionNumber}</h2>
                                 </>
                             )}
                         </div>

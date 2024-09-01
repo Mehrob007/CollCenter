@@ -109,11 +109,14 @@ export default function AddContact() {
             }
         }
     };
+    const removeFields = () => {
+
+    }
 
     return (<>
-        <div>
+        <div style={{ display: 'felx', flexDirection: 'column', alignItems: 'center', justifyContent: 'cenetr' }}>
             <h2>Добавить контакт</h2>
-            
+
             <Form layout="vertical">
                 <Form.Item label="Имя">
                     <Input name="firstName" value={formData.firstName} onChange={handleChange} />
@@ -133,7 +136,7 @@ export default function AddContact() {
                 <Form.Item label="Описание">
                     <Input.TextArea name="description" value={formData.description} onChange={handleChange} />
                 </Form.Item>
-                
+
                 <div>
                     {formData.fields.map((el) => (
                         <div key={el.id} className='fields'>
@@ -145,19 +148,22 @@ export default function AddContact() {
                                 <label>Значение</label>
                                 <Input value={el.value} name='value' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
                             </div>
-                            {formData.fields.length === el.id && (
-                                <nav onClick={addFields}>+</nav>
+                            {el.id != formData.fields[0].id && (
+                                <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
                             )}
                         </div>
                     ))}
+                    {formData.fields.length && (
+                        <nav className='addFields' onClick={addFields}>+</nav>
+                    )}
                 </div>
 
-                <Button type="primary" style={{ height: '40px', margin: '20px auto' }} onClick={addContact}>
-                    Добавить контакт
-                </Button>
             </Form>
-            <Link style={{ textDecoration: 'none', background: '#0478FF', borderRadius: '10px', color: 'white', padding: '5px 30px', margin: '20px 0'}} to="/contacts">назад</Link>
-            
+            <Button styles={{ margin: '0 auto' }} type="primary" style={{ height: '40px', margin: '20px auto' }} onClick={addContact}>
+                Добавить контакт    
+            </Button><br />
+            <Link style={{ textDecoration: 'none', background: '#0478FF', borderRadius: '10px', color: 'white', padding: '5px 30px', margin: '20px 0' }} to="/contacts">назад</Link>
+
         </div>
     </>);
 }
