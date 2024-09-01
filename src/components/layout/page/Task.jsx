@@ -23,8 +23,8 @@ export default function Task() {
   const [fetching2, setFetching2] = useState(false);
   const [fetching3, setFetching3] = useState(false);
   const [options, setOptions] = useState([]);
-  const [data2, setData2] = useState([]);
-  const [data3, setData3] = useState([]);
+  // const [data2, setData2] = useState([]);
+  // const [data3, setData3] = useState([]);
   const [currentPage3, setCurrentPage3] = useState(1);
   const [currentPage2, setCurrentPage2] = useState(1);
   const ApplicationTaskPriority = [
@@ -51,54 +51,54 @@ export default function Task() {
 
 
   async function fetchData(anotherStatus = false, id) {
-    try {
-      // console.log(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${status}`);
-
-      console.log(`THIS STATUS IS ${status}`);
-
-      if(anotherStatus){
-        setData([]);
-      }
-      const token = localStorage.getItem('accessToken');
-      setLoading(true);
-      if (token) {
-        const response = await apiClient.get(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (Array.isArray(response.data.tasks)) {
-          setData((prev) => [...prev, ...response.data.tasks]);
+    setVibor(id)
+      try {
+        // console.log(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${status}`);
+        console.log(`THIS STATUS IS ${status}`);
+  
+        if(anotherStatus){
+          setData([]);
+        }
+        const token = localStorage.getItem('accessToken');
+        setLoading(true);
+        if (token) {
+          const response = await apiClient.get(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (Array.isArray(response.data.tasks)) {
+            setData((prev) => [...prev, ...response.data.tasks]);
+          } else {
+            console.error('Ожидался массив, но получен другой тип данных:', response.data.tasks);
+          }
+          console.log(response.data);
+  
+          if (anotherStatus) {
+            setCurrentPage(1);
+          }
+          else {
+            setCurrentPage((el) => el + 1);
+          }
+          // setTotalCount(response.headers['x-total-count']);
         } else {
-          console.error('Ожидался массив, но получен другой тип данных:', response.data.tasks);
+          console.error('Access token отсутствует');
         }
-        console.log(response.data);
-
-        if (anotherStatus) {
-          setCurrentPage(1);
+      } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        if (error.response.status === 401) {
+          let accessToken = refreshAccessToken()
+          let booleanRes = Boolean(accessToken)
+          if (booleanRes) {
+            setFetching(true)
+          }
+          console.log(error.response.status);
+          console.log(`Аксес токен обнавлен: ${accessToken}`);
         }
-        else {
-          setCurrentPage((el) => el + 1);
-        }
-        // setTotalCount(response.headers['x-total-count']);
-      } else {
-        console.error('Access token отсутствует');
+      } finally {
+        setLoading(false);
+        setFetching(false);
       }
-    } catch (error) {
-      console.error('Ошибка при выполнении запроса:', error);
-      if (error.response.status === 401) {
-        let accessToken = refreshAccessToken()
-        let booleanRes = Boolean(accessToken)
-        if (booleanRes) {
-          setFetching(true)
-        }
-        console.log(error.response.status);
-        console.log(`Аксес токен обнавлен: ${accessToken}`);
-      }
-    } finally {
-      setLoading(false);
-      setFetching(false);
-    }
   }
 
   const scrollHandler = (e) => {
@@ -145,107 +145,107 @@ export default function Task() {
   console.log(formData);
   const navigate = useNavigate()
 
-  const getDataSelectLine = async () => {
-    const token = localStorage.getItem('accessToken');
-    try {
-      const response = await apiClient.get(
-        `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setData2((prevState) => [...prevState, ...response.data.interactions]);
-      setCurrentPage2((el) => el + 1);
-      console.log(response.data.interactions);
+  // const getDataSelectLine = async () => {
+  //   const token = localStorage.getItem('accessToken');
+  //   try {
+  //     const response = await apiClient.get(
+  //       `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     setData2((prevState) => [...prevState, ...response.data.interactions]);
+  //     setCurrentPage2((el) => el + 1);
+  //     console.log(response.data.interactions);
 
-      const arr = response.data.interactions.map(el => [
-        { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
-      ])
+  //     const arr = response.data.interactions.map(el => [
+  //       { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
+  //     ])
 
-      setArrObjactInteractionId(...arr)
-    } catch (error) {
-      console.error("Ошибка при загрузке данных:", error);
-    } finally {
-      setFetching2(false);
-    }
-  }
-  const scrollHandler2 = (e) => {
-    const target = e.target;
-    if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-      if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-        console.log('scroll');
-        setFetching2(true);
-      }
-    }
-  };
+  //     setArrObjactInteractionId(...arr)
+  //   } catch (error) {
+  //     console.error("Ошибка при загрузке данных:", error);
+  //   } finally {
+  //     setFetching2(false);
+  //   }
+  // }
+  // const scrollHandler2 = (e) => {
+  //   const target = e.target;
+  //   if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+  //     if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
+  //       console.log('scroll');
+  //       setFetching2(true);
+  //     }
+  //   }
+  // };
 
-  const getUserSelectLine = async () => {
-    const token = localStorage.getItem('accessToken');
-    // console.log(token);
+  // const getUserSelectLine = async () => {
+  //   const token = localStorage.getItem('accessToken');
+  //   // console.log(token);
 
-    try {
-      const response = await apiClient.get(
-        `api/users/all?pagination.limit=25&pagination.page=${currentPage3}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setData3((prevState) => [...prevState, ...response.data.users]);
-      setCurrentPage3((el) => el + 1);
-      console.log(response.data.users);
+  //   try {
+  //     const response = await apiClient.get(
+  //       `api/users/all?pagination.limit=25&pagination.page=${currentPage3}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     setData3((prevState) => [...prevState, ...response.data.users]);
+  //     setCurrentPage3((el) => el + 1);
+  //     console.log(response.data.users);
 
-      const arr = response.data.users.map(el => {
-        return { value: el.id, label: el.username }
-      }
-      )
-      console.log(arr)
+  //     const arr = response.data.users.map(el => {
+  //       return { value: el.id, label: el.username }
+  //     }
+  //     )
+  //     console.log(arr)
 
-      setOptions(arr)
-    } catch (error) {
-      console.error("Ошибка при загрузке данных:", error);
-    } finally {
-      setFetching3(false);
-    }
-  }
-  const scrollHandler3 = (e) => {
-    const target = e.target;
-    if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-      if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-        console.log('scroll');
-        setFetching3(true)
-      }
-    }
-  };
+  //     setOptions(arr)
+  //   } catch (error) {
+  //     console.error("Ошибка при загрузке данных:", error);
+  //   } finally {
+  //     setFetching3(false);
+  //   }
+  // }
+  // const scrollHandler3 = (e) => {
+  //   const target = e.target;
+  //   if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+  //     if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
+  //       console.log('scroll');
+  //       setFetching3(true)
+  //     }
+  //   }
+  // };
 
   useEffect(() => {
     if (fetching) {
       fetchData();
     }
   }, [fetching]);
-  useEffect(() => {
-    getDataSelectLine();
-  }, []);
+  // useEffect(() => {
+  //   getDataSelectLine();
+  // }, []);
 
   useEffect(() => {
     if (fetching2) {
-      getDataSelectLine();
+      // getDataSelectLine();
     }
   }, [fetching2]);
 
   useEffect(() => {
-    getUserSelectLine();
+    // getUserSelectLine();
+    fetchData(true, 0)
   }, []);
 
-  useEffect(() => {
-    if (fetching3) {
-      getUserSelectLine();
-    }
-  }, [fetching3]);
-
+  // useEffect(() => {
+  //   if (fetching3) {
+  //     getUserSelectLine();
+  //   }
+  // }, [fetching3]);
   return (
     <div className='MessBox'>
 
@@ -427,27 +427,22 @@ export default function Task() {
         <div>
           <button onClick={() => {
             navigate('/task/0')
-            setVibor(0)
             fetchData(true, 0)
           }} style={{ background: status == 0 ? '#2EA0FF' : 'transparent', color: status == 0 ? 'white' : 'black' }}>Отложеный</button>
           <button onClick={() => {
             navigate('/task/1')
-            setVibor(1)
             fetchData(true, 1)
           }} style={{ background: status == 1 ? '#2EA0FF' : 'transparent', color: status == 1 ? 'white' : 'black' }}>Требует ввода</button>
           <button onClick={() => {
             navigate('/task/2')
-            setVibor(2)
             fetchData(true, 2)
           }} style={{ background: status == 2 ? '#2EA0FF' : 'transparent', color: status == 2 ? 'white' : 'black' }}>Завершенные</button>
           <button onClick={() => {
             navigate('/task/3')
-            setVibor(3)
             fetchData(true, 3)
           }} style={{ background: status == 3 ? '#2EA0FF' : 'transparent', color: status == 3 ? 'white' : 'black' }}>В прогрессе</button>
           <button onClick={() => {
             navigate('/task/4')
-            setVibor(4)
             fetchData(true, 4)
           }} style={{ background: status == 4 ? '#2EA0FF' : 'transparent', color: status == 4 ? 'white' : 'black' }}>Не начатые</button>
         </div>
@@ -485,7 +480,7 @@ export default function Task() {
         </div>
       )) : <p>loading...</p>} */}
       <div className="ulLiDataMessHeader">
-      {!loading ? data.map((prev, i) => (
+      {data?.map((prev, i) => (
         <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
           <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
           <input type="text" onChange={(el) => el.target.value = prev.creator.name} value={prev.creator.name ?? ''} />
@@ -495,7 +490,7 @@ export default function Task() {
           <h1>{prev.dueDate.split('T')[0]}</h1>
           <h1>{prev.startDate.split('T')[0]}</h1>
         </div>
-      )) : <div>loading...</div>}
+      ))}
       </div>
     </div>
   );

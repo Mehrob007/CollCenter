@@ -50,13 +50,13 @@ export default function Mess() {
       if (error.response.status === 401) {
         let accessToken = await refreshAccessToken()
         let booleanRes = Boolean(accessToken)
-        if (booleanRes){
-            setFetching(true)
+        if (booleanRes) {
+          setFetching(true)
         }
         console.log(error.response.status);
         console.log(`Аксес токен обнавлен: ${accessToken}`);
-    }
-      
+      }
+
     } finally {
       setLoading(false);
       setFetching(false);
@@ -98,7 +98,7 @@ export default function Mess() {
             <img src={cloasX} alt="cloasX" />
           </button>
           <div className='messageDataModal'>
-            { <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(dataMessage.body) }} /> }
+            {<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(dataMessage.body) }} />}
           </div>
         </Modal>
       )}
@@ -116,7 +116,8 @@ export default function Mess() {
         <Link to='/write-letter' className='linkMess'>Новое письмо</Link>
       </div>
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {vibor ? !loading ? data.filter((prevFilter) => prevFilter.isIncoming == false).map((el, i) => (
+
+        {vibor == true && data?.filter((prevFilter) => prevFilter.isIncoming == false).map((el, i) => (
           <div key={i} className='itemsMessContent' style={{ cursor: "pointer" }} onClick={() => opneModalInfoMessage(el)}>
             <div>
               <div></div>
@@ -126,7 +127,8 @@ export default function Mess() {
             </div>
             <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
           </div>
-        )) : <p>loading...</p> : !loading ? data.filter((prevFilter) => prevFilter.isIncoming == true).map((el, i) => (
+        ))}
+        {vibor == false && data.filter((prevFilter) => prevFilter.isIncoming == true).map((el, i) => (
           <div key={i} className='itemsMessContent' style={{ cursor: "pointer" }} onClick={() => opneModalInfoMessage(el)}>
             <div>
               <div></div>
@@ -136,7 +138,7 @@ export default function Mess() {
             </div>
             <h1>День: {el.sentDate.split('T')[0]} Время: {el.sentDate.split('T')[1].split('Z')[0].slice(0, 5)}</h1>
           </div>
-        )) : <p>loading...</p>}
+        ))}
       </div>
     </div>
   )

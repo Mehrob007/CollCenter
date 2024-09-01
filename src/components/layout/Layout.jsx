@@ -27,7 +27,7 @@ export default function Layout() {
                     },
                 })
                 setData(response.data)
-                console.log(response.data);
+                // console.log(response.data);
                 
                 setRestart(false)
             } else {
@@ -52,7 +52,7 @@ export default function Layout() {
         fetchData()
     }, [restart])
 
-    console.log(restart);
+    // console.log(restart);
     const Exte = () => {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')

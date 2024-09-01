@@ -60,7 +60,7 @@ export default function Magazine() {
           },
         });
         const newArr = response.data.users.map((el) => ({ label: el.name, value: el.id }));
-        console.log(response.data);
+        // console.log(response.data);
 
         setOptions(newArr);
         // if (Array.isArray(response.data.users)) {
@@ -108,7 +108,7 @@ export default function Magazine() {
     }
   }, [fetchingUser])
   // console.log(formDataCompany);
-  console.log(formData);
+  // console.log(formData);
 
 
 
@@ -183,7 +183,7 @@ export default function Magazine() {
           },
         });
         const newArr = response.data.contacts.map((el) => ({ label: el.name, value: el.id }));
-        console.log(response.data.contacts);
+        // console.log(response.data.contacts);
 
         setOptionsContacts(newArr)
         setCurrentPageContacts((prev) => prev + 1);
@@ -227,7 +227,7 @@ export default function Magazine() {
   }, [fetchingContacts])
 
 
-  console.log(formDataCompany);
+  // console.log(formDataCompany);
 
 
 
@@ -235,7 +235,7 @@ export default function Magazine() {
   const postAddNewInteraction = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      console.log(token);
+      // console.log(token);
       
       const localDate = new Date();
       const isoDate = localDate.toISOString();
@@ -249,6 +249,7 @@ export default function Magazine() {
       } else {
         console.error('Access token отсутствует');
       }
+      setOpenAddInteractions(false)
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
       if (error.response.status === 401) {
@@ -295,7 +296,7 @@ export default function Magazine() {
         } else {
           console.error('Ожидался массив, но получен другой тип данных:', response.data.interactions);
         }
-        console.log(response.data);
+        // console.log(response.data);
         if (anotherStatus) {
           setCurrentPage(1);
         }
@@ -345,7 +346,7 @@ export default function Magazine() {
     })
   }
 
-  console.log(formData.fields);
+  // console.log(formData.fields);
 
   const handleChangeFields = (el, id) => {
     const { name, value } = el.target;
@@ -601,14 +602,14 @@ export default function Magazine() {
       </div>
 
       <div className="ulLiDataMess" onScroll={scrollHandler}>
-        {!loading ? data.map((prev, i) => (
+        {data?.map((prev, i) => (
           <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
             <input type="text" onChange={() => { }} value={`${prev.contact.name}  ${prev.contact.surname[0]}.`} />
             <input type="text" onChange={() => { }} value={`+992 ${prev.contact.phone}`} />
             <input type="text" onChange={() => { }} value={`${prev.callDuration}`} />
             <h1>{prev.interactionDate.split('T')[0]}  {prev.interactionDate.split('T')[1].split('.')[0]}</h1>
           </div>
-        )) : <div>loading...</div>}
+        ))}
       </div>
     </div>
   </>)
