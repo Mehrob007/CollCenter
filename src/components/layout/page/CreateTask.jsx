@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Bounce } from 'react-toastify';
-import { Select, Space } from 'antd';
+import { Select, Space, Spin } from 'antd';
 import apiClient from '../../../utils/api';
 import { getToken } from '../../store/StoreGetToken';
+import { Option } from 'antd/es/mentions';
 
 export default function CreateTask() {
     const [formData, setFormData] = useState({
@@ -17,18 +18,21 @@ export default function CreateTask() {
         idPreoritet: '',
         idStatus: '',
         interactionId: '',
-
     });
     const [options, setOptions] = useState([]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [fetching, setFetching] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [data2, setData2] = useState([]);
-    const [currentPage2, setCurrentPage2] = useState(1);
-    const [fetching2, setFetching2] = useState(false);
     const { refreshAccessToken } = getToken();
-    const { interactionId } = useParams()
+    const { interactionIdContacts } = useParams()
+
+    const [dataSearch, setDataSearch] = useState([]);
+    const [fetchingSearch, setFetchingSearch] = useState(false);
+
+    const [dataSearchUsers, setDataSearchUsers] = useState([]);
+    const [fetchingSearchUsers, setFetchingSearchUsers] = useState(false);
+    const navigate = useNavigate()
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -115,8 +119,6 @@ export default function CreateTask() {
         { label: 'Средний', value: 1 },
         { label: 'Высокий', value: 2 }
     ];
-    const [arrObjactInteractionId, setArrObjactInteractionId] = useState([]);
-
     const ApplicationTaskStatus = [
         { label: 'Отложено', value: 0 },
         { label: 'Ожидает ввода', value: 1 },
@@ -125,7 +127,6 @@ export default function CreateTask() {
         { label: 'Не начато', value: 4 },
     ];
 
-    console.log(options);
 
 
     const fetchData = async () => {
@@ -184,14 +185,55 @@ export default function CreateTask() {
             setFetching(true);
         }
     };
-    useEffect(() => {
-        fetchData()
-    }, [])
-    useEffect(() => {
-        if (fetching) {
-            fetchData();
+
+    const fetchOptionsUsers = async (searchValue) => {
+        setFetchingSearchUsers(true);
+        const token = localStorage.getItem('accessToken');
+        try {
+            const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setDataSearchUsers(response.data);  // Предположим, что данные приходят в виде массива объектов
+        } catch (error) {
+            console.error('Ошибка при выполнении запроса:', error);
+            if (error.response.status === 401) {
+                let accessToken = await refreshAccessToken()
+                let booleanRes = Boolean(accessToken)
+                if (booleanRes) {
+                    navigate(0)
+                }
+                console.log(error.response.status);
+                console.log(`Аксес токен обнавлен: ${accessToken}`);
+            }
+            toast.error('Ошибка при загрузке данных', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        } finally {
+            setFetchingSearchUsers(false);
         }
-    }, [fetching])
+    };
+
+    const handleSearchUsers = (value) => {
+        if (value) {
+            fetchOptionsUsers(value);
+        } else {
+            setDataSearchUsers([]);
+        }
+    };
+
+
+
+
 
     const funSendLetter = async (e) => {
         e.preventDefault();
@@ -231,130 +273,54 @@ export default function CreateTask() {
             });
         }
     };
-    const getDataSelectLine = async () => {
+
+    const fetchOptions = async (searchValue) => {
+        setFetchingSearch(true);
         const token = localStorage.getItem('accessToken');
-        // console.log(token);
-
         try {
-            const response = await apiClient.get(
-                `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setData2((prevState) => [...prevState, ...response.data.interactions]);
-            setCurrentPage2((el) => el + 1);
-            console.log(response.data.interactions);
-
-
-            // const faceData = [
-            //     {
-            //       "id": 0,
-            //       "description": "string",
-            //       "fields": [
-            //         {
-            //           "id": 0,
-            //           "name": "string",
-            //           "value": "string"
-            //         }
-            //       ],
-            //       "company": {
-            //         "id": 0,
-            //         "name": "string",
-            //         "sipNumber": "string"
-            //       },
-            //       "contact": {
-            //         "id": 0,
-            //         "name": "string",
-            //         "surname": "string",
-            //         "phone": "string",
-            //         "middleName": "string",
-            //         "email": "string",
-            //         "description": "string",
-            //         "fields": [
-            //           {
-            //             "id": 0,
-            //             "name": "string",
-            //             "value": "string"
-            //           }
-            //         ],
-            //         "creator": {
-            //           "id": 0,
-            //           "username": "string",
-            //           "role": "Operator",
-            //           "name": "string",
-            //           "surname": "string",
-            //           "extensionNumber": 0,
-            //           "createdAt": "string"
-            //         },
-            //         "createdAt": "string"
-            //       },
-            //       "user": {
-            //         "id": 0,
-            //         "username": "string",
-            //         "role": "Operator",
-            //         "name": "string",
-            //         "surname": "string",
-            //         "extensionNumber": 0,
-            //         "createdAt": "string"
-            //       },
-            //       "interactionDate": "string"
-            //     }
-            //   ]
-            // Создаём новый массив объектов, добавляя новые элементы
-            const newArr = response.data.interactions.map(el => ({
-                value: el.id,
-                label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} `
-            }));
-
-            // Объединяем существующий массив с новым и обновляем состояние
-            setArrObjactInteractionId(prev => [...prev, ...newArr]);
-
-
+            const response = await apiClient.get(`api/search/call/all/?${interactionIdContacts || searchValue}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setDataSearch(response.data);  // Предположим, что данные приходят в виде массива объектов
         } catch (error) {
-            console.error("Ошибка при загрузке данных:", error);
-        } finally {
-            setFetching2(false);
-        }
-    }
-    const scrollHandler2 = (e) => {
-        const target = e.target;
-        if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-                console.log('scroll');
-                setFetching2(true)
+            console.error('Ошибка при выполнении запроса:', error);
+            if (error.response.status === 401) {
+                let accessToken = await refreshAccessToken()
+                let booleanRes = Boolean(accessToken)
+                if (booleanRes) {
+                    navigate(0)
+                }
+                console.log(error.response.status);
+                console.log(`Аксес токен обнавлен: ${accessToken}`);
             }
+            toast.error('Ошибка при загрузке данных', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        } finally {
+            setFetchingSearch(false);
         }
     };
 
-    const uniqueOptions = arrObjactInteractionId.filter((item, index, self) =>
-        index === self.findIndex((t) => t.value === item.value)
-    );
+    const handleSearch = (value) => {
+        if (value) {
+            fetchOptions(value);
+        } else {
+            setDataSearch([]);
+        }
+    };
+    // const defData = uniqueOptions.find(el => el.value == interactionId);
 
-    // const getDataSearch = async (value) => {
-    //     // const res = await apiClient.post(`api/`)
-
-    //     console.log(value);
-
-
-
-    //     setFormData((prev) => ({
-    //         ...prev,
-    //         interactionId: value
-    //     }));
-
-    // }
-    useEffect(() => {
-        getDataSelectLine()
-    }, [])
-    useEffect(() => {
-        getDataSelectLine()
-    }, [fetching2]);
-    const defData = uniqueOptions.find(el => el.value == interactionId);
-
-    console.log(defData);
+    // console.log(defData);
 
     // Если 
 
@@ -367,20 +333,29 @@ export default function CreateTask() {
             <form className='formDataWL' onSubmit={funSendLetter}>
                 <div>
                     <label>Взаимодействие</label>
-                    {uniqueOptions &&
+                    {dataSearch &&
                         <Select
                             showSearch
-                            style={{ width: '100%' }}
+                            allowClear
                             placeholder="Взаимодействие"
-                            optionFilterProp="label"
-                            defaultValue={defData !== undefined && defData}
-                            filterSort={(optionA, optionB) =>
-                                (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                            }
-                            onChange={(value) => console.log(value)}
-                            options={uniqueOptions}
-                            onPopupScroll={scrollHandler2}
-                        />}
+                            notFoundContent={fetchingSearch ? <Spin size="small" /> : null}
+                            filterOption={false}
+                            onSearch={handleSearch}
+                            style={{ width: '100%', height: '40px' }}
+                            onChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    interactionId: value
+                                }));
+                            }}
+                        >
+                            {dataSearch.map((item) => (
+                                <Option key={item.id} value={item.value}>
+                                    {item.label}
+                                </Option>
+                            ))}
+                        </Select>
+                    }
                 </div>
                 <div>
                     <label>Название задачи</label>
@@ -394,7 +369,7 @@ export default function CreateTask() {
                 </div>
                 <div>
                     <label>Исполнитель</label>
-                    <Space onScroll={scrollHandler} style={{ width: '100%' }} direction="vertical">
+                    {/* <Space onScroll={scrollHandler} style={{ width: '100%' }} direction="vertical">
                         <Select
                             mode="multiple"
                             allowClear
@@ -408,7 +383,29 @@ export default function CreateTask() {
                             }}
                             options={!loading && options}
                         />
-                    </Space>
+                    </Space> */}
+                    {dataSearchUsers &&
+                        <Select
+                            showSearch
+                            allowClear
+                            placeholder="Исполнитель"
+                            notFoundContent={fetchingSearchUsers ? <Spin size="small" /> : null}
+                            filterOption={false}
+                            style={{ width: '100%', height: '40px' }}
+                            onSearch={handleSearchUsers}
+                            onChange={(value) => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    idUsers: value
+                                }));
+                            }}
+                        >
+                            {dataSearchUsers.map((item) => (
+                                <Option key={item.id} value={item.value}>
+                                    {item.label}
+                                </Option>
+                            ))}
+                        </Select>}
                 </div>
 
                 <div className='StatusPrioritet'>

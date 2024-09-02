@@ -19,7 +19,7 @@ export default function Сontacts() {
     phone: '',
     description: '',
     email: '',
-    fields: [{ name: '', value: '', id: 1 }],
+    fields: [],
   });
   const [open, setOpen] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -91,20 +91,20 @@ export default function Сontacts() {
     }
 
     // Проверка на наличие хотя бы одного поля в массиве fields
-    if (formData.fields.length === 0 || !formData.fields[0].name || !formData.fields[0].value) {
-      toast.error('Добавьте хотя бы одно поле', {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-      return; // Остановка выполнения функции, если валидация не пройдена
-    }
+    // if (formData.fields.length === 0 || !formData.fields[0].name || !formData.fields[0].value) {
+    //   toast.error('Добавьте хотя бы одно поле', {
+    //     position: "top-right",
+    //     autoClose: 5000,
+    //     hideProgressBar: false,
+    //     closeOnClick: true,
+    //     pauseOnHover: true,
+    //     draggable: true,
+    //     progress: undefined,
+    //     theme: "light",
+    //     transition: Bounce,
+    //   });
+    //   return; // Остановка выполнения функции, если валидация не пройдена
+    // }
 
     // Основной код для создания или обновления контакта
     if (IDModal && token) {
@@ -153,7 +153,7 @@ export default function Сontacts() {
         phone: res.data.phone,
         email: res.data.email || '', // Ensure all keys exist
         description: res.data.description || '',
-        fields: [{ name: '', value: '', id: 1 }] // Default to an empty field if not provided
+        fields: [] // Default to an empty field if not provided
       });
 
     } catch (error) {
@@ -441,14 +441,14 @@ export default function Сontacts() {
                   />
                   
                 </div>
-                {el.id !=  formData.fields[0].id && (
+               
                   <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
-                )}
+                
               </div>
             ))}
-               {formData.fields.length && (
+               
                   <nav className='addFields' onClick={() => addFields(formData.fields.length + 1)}>+</nav>
-                )}
+              
                 
 
           </div>

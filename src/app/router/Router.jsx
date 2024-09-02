@@ -44,7 +44,7 @@ export default function Router() {
           <Route path="write-letter" element={<WriteLetter />} />
           <Route path="write-letter/:Email" element={<WriteLetter />} />
           <Route path="create-task" element={<CreateTask />} />
-          <Route path="create-task/:interactionId" element={<CreateTask />} />
+          <Route path="create-task/:interactionIdContacts" element={<CreateTask />} />
           <Route path="message" element={<Mess />} />
           <Route path="task" element={<Task />} />
           <Route path="task/:status" element={<Task />} />
@@ -52,7 +52,7 @@ export default function Router() {
           <Route path="contacts/:poiskNumber" element={<Contacts />} />
           <Route path="magazine" element={<Magazine />} />
           <Route path="menejment" element={<Menejment />} />
-          <Route path="otchot" element={<Otchot />} />
+          {/* <Route path="otchot" element={<Otchot />} /> */}
           <Route path="add-contacts" element={<AddContact />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

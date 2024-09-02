@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { getToken } from '../../store/StoreGetToken';
 import apiClient from '../../../utils/api';
 import cloasX from '../../../assets/icon/x.svg'
-import { Input, Modal, Select, Space } from 'antd';
-import { Link } from 'react-router-dom';
+import { Input, Modal, Select, Space, Spin } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bounce, toast } from 'react-toastify';
+import { Option } from 'antd/es/mentions';
 
 
 export default function Magazine() {
@@ -33,9 +34,9 @@ export default function Magazine() {
 
   const [formDataUser, setFormDataUser] = useState({});
   const [loadingUser, setLoadingUser] = useState(true);
+  const [options, setOptions] = useState([]);
   const [currentPageUser, setCurrentPageUser] = useState(1);
   const [fetchingUser, setFetchingUser] = useState(true);
-  const [options, setOptions] = useState([]);
 
   const [formDataCompany, setFormDataCompany] = useState({});
   const [loadingCompany, setLoadingCompany] = useState(true);
@@ -44,10 +45,21 @@ export default function Magazine() {
   const [optionsCompany, setOptionsCompany] = useState([]);
 
   const [formDataContacts, setFormDataContacts] = useState({});
+  const [optionsContacts, setOptionsContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [currentPageContacts, setCurrentPageContacts] = useState(1);
   const [fetchingContacts, setFetchingContacts] = useState(true);
-  const [optionsContacts, setOptionsContacts] = useState([]);
+
+  const [dataSearchUsers, setDataSearchUsers] = useState([]);
+  const [fetchingSearchUsers, setFetchingSearchUsers] = useState(false);
+
+  const [dataSearchContact, setDataSearchContact] = useState([]);
+  const [fetchingSearchContact, setFetchingSearchContact] = useState(false);
+
+  const [dataSearchCompany, setDataSearchCompany] = useState([]);
+  const [fetchingSearchCompany, setFetchingSearchCompany] = useState(false);
+
+  const navigate = useNavigate()
 
   const fetchDataUser = async () => {
     try {
@@ -236,11 +248,11 @@ export default function Magazine() {
     try {
       const token = localStorage.getItem('accessToken');
       // console.log(token);
-      
+
       const localDate = new Date();
       const isoDate = localDate.toISOString();
       if (token) {
-        const response = await apiClient.post(`/api/interactions/?description=${formData.description}&fields=${JSON.stringify(formData.fields)}&companyId=${formDataCompany.idCompany}&contactId=${formDataContacts.idContacts}&userId=${formDataUser.idUsers}&interactionDate=${isoDate}`, null, {
+        const response = await apiClient.post(`/api/interactions/?description=${formData.description}&fields=${JSON.stringify(formData.fields)}&companyId=${formDataUser.idCompany}&contactId=${formDataUser.idContacts}&userId=${formDataUser.idUsers}&interactionDate=${isoDate}`, null, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -377,6 +389,145 @@ export default function Magazine() {
     }));
   }
 
+  const fetchOptionsUsers = async (searchValue) => {
+    setFetchingSearchUsers(true);
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDataSearchUsers(response.data);  // Предположим, что данные приходят в виде массива объектов
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+      toast.error('Ошибка при загрузке данных', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } finally {
+      setFetchingSearchUsers(false);
+    }
+  };
+
+  const handleSearchUsers = (value) => {
+    if (value) {
+      fetchOptionsUsers(value);
+    } else {
+      setDataSearchUsers([]);
+    }
+  };
+
+
+  const fetchOptionsContact = async (searchValue) => {
+    setFetchingSearchContact(true);
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDataSearchContact(response.data);  // Предположим, что данные приходят в виде массива объектов
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+      toast.error('Ошибка при загрузке данных', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } finally {
+      setFetchingSearchContact(false);
+    }
+  };
+
+  const handleSearchContact = (value) => {
+    if (value) {
+      fetchOptionsContact(value);
+    } else {
+      setDataSearchContact([]);
+    }
+  };
+
+
+  const fetchOptionsCompany = async (searchValue) => {
+    setFetchingSearchCompany(true);
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setDataSearchCompany(response.data);  // Предположим, что данные приходят в виде массива объектов
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+      toast.error('Ошибка при загрузке данных', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } finally {
+      setFetchingSearchCompany(false);
+    }
+  };
+
+  const handleSearchCompany = (value) => {
+    if (value) {
+      fetchOptionsCompany(value);
+    } else {
+      setDataSearchCompany([]);
+    }
+  };
+ console.log(formDataUser);
+    
+
 
   useEffect(() => {
     if (fetching) {
@@ -459,7 +610,7 @@ export default function Magazine() {
         <div className="box-modal-createing-elements">
           <div>
             <label >companyId</label>
-            {!loadingCompany &&
+            {/* {!loadingCompany &&
 
               <Select
                 showSearch
@@ -477,11 +628,33 @@ export default function Magazine() {
                 }}
                 options={optionsCompany}
               />
-            }
+            } */}
+             {dataSearchCompany &&
+              <Select
+                showSearch
+                allowClear
+                placeholder="Исполнитель"
+                notFoundContent={fetchingSearchCompany ? <Spin size="small" /> : null}
+                filterOption={false}
+                style={{ width: '100%', height: '40px' }}
+                onSearch={handleSearchCompany}
+                onChange={(value) => {
+                  setFormDataUser((prev) => ({
+                    ...prev,
+                    idCompany: value
+                  }));
+                }}
+              >
+                {dataSearchCompany.map((item) => (
+                  <Option key={item.id} value={item.value}>
+                    {item.label}
+                  </Option>
+                ))}
+              </Select>}
           </div>
           <div>
             <label >contactId</label>
-            {!loadingContacts &&
+            {/* {!loadingContacts &&
 
               <Select
                 showSearch
@@ -499,28 +672,54 @@ export default function Magazine() {
                 }}
                 options={optionsContacts}
               />
-            }
+            } */}
+             {dataSearchContact &&
+              <Select
+                showSearch
+                allowClear
+                placeholder="Исполнитель"
+                notFoundContent={fetchingSearchContact ? <Spin size="small" /> : null}
+                filterOption={false}
+                style={{ width: '100%', height: '40px' }}
+                onSearch={handleSearchContact}
+                onChange={(value) => {
+                  setFormDataUser((prev) => ({
+                    ...prev,
+                    idContacts: value
+                  }));
+                }}
+              >
+                {dataSearchContact.map((item) => (
+                  <Option key={item.id} value={item.value}>
+                    {item.label}
+                  </Option>
+                ))}
+              </Select>}
           </div>
           <div>
             <label >userId</label>
-            {!loadingUser &&
-
+            {dataSearchUsers &&
               <Select
                 showSearch
-                style={{ width: '100%' }}
-                placeholder="Options user"
-                optionFilterProp="label"
-                filterSort={(optionA, optionB) =>
-                  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                }
+                allowClear
+                placeholder="Исполнитель"
+                notFoundContent={fetchingSearchUsers ? <Spin size="small" /> : null}
+                filterOption={false}
+                style={{ width: '100%', height: '40px' }}
+                onSearch={handleSearchUsers}
                 onChange={(value) => {
                   setFormDataUser((prev) => ({
                     ...prev,
                     idUsers: value
                   }));
                 }}
-                options={options}
-              />}
+              >
+                {dataSearchUsers.map((item) => (
+                  <Option key={item.id} value={item.value}>
+                    {item.label}
+                  </Option>
+                ))}
+              </Select>}
           </div>
           <div>
             <label >Описание</label>

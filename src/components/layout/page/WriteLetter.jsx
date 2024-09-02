@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import { Bounce, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import apiClient from '../../../utils/api';
-import { Select } from 'antd';
+import { Select, Spin } from 'antd';
 import { getToken } from '../../store/StoreGetToken';
 
 const { Option } = Select;
@@ -18,13 +18,16 @@ export default function WriteLetter() {
         subject: '',
         description: '',
         file: null,
-        emailCredentialId: null
+        emailCredentialId: null,
+        interactionId: ''
     });
-    const [lineSelect, setLineSelect] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [fetching, setFetching] = useState(true);
+    // const [lineSelect, setLineSelect] = useState([]);
+    // const [currentPage, setCurrentPage] = useState(1);
+    // const [fetching, setFetching] = useState(true);
     const navigate = useNavigate()
-    const [arrObjactInteractionId, setArrObjactInteractionId] = useState([]);
+    // const [arrObjactInteractionId, setArrObjactInteractionId] = useState([]);
+    const [dataSearch, setDataSearch] = useState([]);
+    const [fetchingSearch, setFetchingSearch] = useState(false);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -111,45 +114,89 @@ export default function WriteLetter() {
         }
     }
 
-    const getDataSelectLine = async () => {
-        const token = localStorage.getItem('accessToken');
-        // console.log(token);
+    // const getDataSelectLine = async () => {
+    //     const token = localStorage.getItem('accessToken');
+    //     // console.log(token);
 
+    //     try {
+    //         const response = await apiClient.get(
+    //             `api/email/email-credentials/all?pagination.limit=50&pagination.page=${currentPage}`,
+    //             {
+    //                 headers: {
+    //                     Authorization: `Bearer ${token}`,
+    //                 },
+    //             }
+    //         );
+    //         setLineSelect((prevState) => [...prevState, ...response.data.emailCredentials]);
+    //         setCurrentPage((el) => el + 1);
+    //         console.log(response.data.emailCredentials);
+    //         const arr = lineSelect.map(el => [
+    //             { value: el.id, label: el.name }
+    //         ])
+    //         setArrObjactInteractionId(...arr)
+    //     } catch (error) {
+    //         console.error("Ошибка при загрузке данных:", error);
+    //     } finally {
+    //         setFetching(false);
+    //     }
+    // }
+    const fetchOptions = async (searchValue) => {
+        setFetchingSearch(true);
+        const token = localStorage.getItem('accessToken');
         try {
-            const response = await apiClient.get(
-                `api/email/email-credentials/all?pagination.limit=50&pagination.page=${currentPage}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            setLineSelect((prevState) => [...prevState, ...response.data.emailCredentials]);
-            setCurrentPage((el) => el + 1);
-            console.log(response.data.emailCredentials);
-            const arr = lineSelect.map(el => [
-                { value: el.id, label: el.name }
-            ])
-            setArrObjactInteractionId(...arr)
+            const response = await apiClient.get(`api/search/?${searchValue}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            setDataSearch(response.data);  
         } catch (error) {
-            console.error("Ошибка при загрузке данных:", error);
-        } finally {
-            setFetching(false);
-        }
-    }
-    const scrollHandler = (e) => {
-        const target = e.target;
-        if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-            if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-                console.log('scroll');
-                setFetching(true)
+            console.error('Ошибка при выполнении запроса:', error);
+            if (error.response.status === 401) {
+                let accessToken = await refreshAccessToken()
+                let booleanRes = Boolean(accessToken)
+                if (booleanRes) {
+                    navigate(0)
+                }
+                console.log(error.response.status);
+                console.log(`Аксес токен обнавлен: ${accessToken}`);
             }
+            toast.error('Ошибка при загрузке данных', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        } finally {
+            setFetchingSearch(false);
         }
     };
 
-    useEffect(() => {
-        getDataSelectLine()
-    }, [fetching]);
+    const handleSearch = (value) => {
+        if (value) {
+            fetchOptions(value);
+        } else {
+            setDataSearch([]);
+        }
+    };
+    // const scrollHandler = (e) => {
+    //     const target = e.target;
+    //     if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+    //         if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
+    //             console.log('scroll');
+    //             setFetching(true)
+    //         }
+    //     }
+    // };
+
+    // useEffect(() => {
+    //     getDataSelectLine()
+    // }, [fetching]);
     return (
         <div className='WriteLetter'>
             <div className="headerWL">
@@ -158,7 +205,7 @@ export default function WriteLetter() {
             <form className='formDataWL' onSubmit={funSendLetter}>
                 <div>
                     <label >Аккаунт</label> <br />
-                    <Select
+                    {/* <Select
                         showSearch
                         style={{ width: 220 }}
                         placeholder="Аккаунт"
@@ -179,7 +226,30 @@ export default function WriteLetter() {
                                 {item.label}
                             </Option>
                         ))}
-                    </Select>
+                    </Select> */}
+                    {dataSearch &&
+                        <Select
+                            showSearch
+                            allowClear
+                            placeholder="Взаимодействие"
+                            notFoundContent={fetchingSearch ? <Spin size="small" /> : null}
+                            filterOption={false}
+                            onSearch={handleSearch}
+                            style={{ width: '100%', height: '40px' }}
+                            onChange={(value) =>
+                                setFormData((prevData) => ({
+                                    ...prevData,
+                                    emailCredentialId: value,
+                                }))
+                            }
+                        >
+                            {dataSearch.map((item) => (
+                                <Option key={item.id} value={item.value}>
+                                    {item.label}
+                                </Option>
+                            ))}
+                        </Select>
+                    }
                 </div>
                 <div>
                     <label >Кому (через запятую для нескольких адресов)</label>

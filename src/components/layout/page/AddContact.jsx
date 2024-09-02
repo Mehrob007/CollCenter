@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Input, Form } from 'antd';
 import { Bounce, toast } from 'react-toastify';
 import apiClient from '../../../utils/api';
@@ -10,14 +10,16 @@ export default function AddContact({ call, number }) {
         firstName: '',
         lastName: '',
         middleName: '',
-        phone: '',
+        phone: number || '',
         email: '',
         description: '',
-        fields: [{ name: '', value: '', id: 1 }],
+        fields: [],
     });
+    const navigate = useNavigate()
+    const [resUserFinde, setResUserFinde] = useState('')
 
-    const navigate = useNavigate();
     const { refreshAccessToken } = getToken();
+    const [contactId, setContactId] = useState('')
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,6 +28,27 @@ export default function AddContact({ call, number }) {
             [name]: value,
         });
     };
+
+    useEffect(() => {
+        if (call) {
+            getUserPhone()
+        }
+    }, [call])
+
+    const getUserPhone = async () => {
+        setResUserFinde('')
+        let token = localStorage.getItem('accessToken')
+
+        const res = await apiClient.get(`api/contacts/all?phone=${number}&pagination.limit=1&pagination.page=1`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        setResUserFinde(res.data.contacts)
+        setContactId(res.data.contacts[0].id)
+        console.log(res.data.contacts[0].id);
+        
+    }
 
     const handleChangeFields = (e, id) => {
         const { name, value } = e.target;
@@ -49,42 +72,10 @@ export default function AddContact({ call, number }) {
         }));
     };
 
-    const checkContactExists = async (phone) => {
-        const token = localStorage.getItem('accessToken');
-        try {
-            const response = await apiClient.get(`/api/contacts?id=${phone}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            return response.data; // Assuming the response contains the contact data
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                await refreshAccessToken();
-                navigate(0);
-            }
-            throw error;
-        }
-    };
-
-    const updateContact = async (contactId) => {
-        const token = localStorage.getItem('accessToken');
-        try {
-            await apiClient.put(`/api/contacts/${contactId}`, formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            toast.success('Контакт успешно обновлён!');
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     const addContact = async () => {
         let token = localStorage.getItem('accessToken');
 
-        // Validate required fields
+        // Валидация обязательных полей
         if (!formData.firstName || !formData.lastName || !formData.phone) {
             toast.error('Заполните необходимые поля', {
                 position: "top-right",
@@ -101,22 +92,82 @@ export default function AddContact({ call, number }) {
         }
 
         try {
-            const existingContact = await checkContactExists(formData.phone);
-            if (existingContact) {
-                // If the contact exists, update it
-                await updateContact(existingContact.id);
-            } else {
-                // If the contact does not exist, add it
-                const res = await apiClient.post(`api/contacts`, formData, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                console.log(res);
-                toast.success('Контакт успешно добавлен!');
-            }
+            const res = await apiClient.post(`api/contacts/?name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}&email=${formData.email}&description=${formData.description}&fields=${JSON.stringify(formData.fields)}`, {
+                name: formData.firstName,
+                surname: formData.lastName,
+                middleName: formData.middleName,
+                phone: formData.phone,
+                email: formData.email,
+                description: formData.description,
+                fields: formData.fields,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-            // Clear the form after successful operation
+            console.log(res);
+            toast.success('Контакт успешно добавлен!');
+            // Очистка формы после успешного добавления
+            ({
+                firstName: '',
+                lastName: '',
+                middleName: '',
+                phone: '',
+                email: '',
+                description: '',
+                fields: [{ name: '', value: '', id: 1 }],
+            });
+        } catch (error) {
+            console.error(error);
+            if (error.response && error.response.status === 401) {
+                let accessToken = await refreshAccessToken();
+                let booleanRes = Boolean(accessToken);
+                if (booleanRes) {
+                    navigate(0);
+                } else {
+                    console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
+                }
+            }
+        }
+    };
+    const updateContact = async () => {
+        let token = localStorage.getItem('accessToken');
+
+        // Валидация обязательных полей
+        if (!formData.firstName || !formData.lastName || !formData.phone) {
+            toast.error('Заполните необходимые поля', {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+            return;
+        }
+
+        try {
+            const res = await apiClient.put(`api/contacts/?id=${contactId}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}${ formData.email && `&email=${formData.email}` }${ formData.description && `&description=${formData.description}`}&fields=${JSON.stringify(formData.fields)}`, {
+                name: formData.firstName,
+                surname: formData.lastName,
+                middleName: formData.middleName,
+                phone: formData.phone,
+                email: formData.email,
+                description: formData.description,
+                fields: formData.fields,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log(res);
+            toast.success('Контакт успешно обновлен!');
+            // Очистка формы после успешного обновления
             setFormData({
                 firstName: '',
                 lastName: '',
@@ -145,64 +196,69 @@ export default function AddContact({ call, number }) {
             ...prevState,
             fields: prevState.fields.filter(el => el.id !== id),
         }));
-    };
+    }
 
-    return (
-        <>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <h2>Добавить контакт</h2>
+    return (<>
+        <div style={{ display: 'felx', flexDirection: 'column', alignItems: 'center', justifyContent: 'cenetr' }}>
+            <h2>{!resUserFinde.length > 0 ? 'Добавить' : 'Изминить'} контакт</h2>
 
-                <Form style={{ width: '410px', padding: call ? 0 : '0',  }} layout="vertical">
-                    <div className='formAddContact' style={{ margin: call ? 0 : 'o auto' }}>
-                        <div className='CollRaz'>
-                            <Form.Item label="Имя">
-                                <Input name="firstName" value={formData.firstName} onChange={handleChange} />
-                            </Form.Item>
-                            <Form.Item label="Фамилия">
-                                <Input name="lastName" value={formData.lastName} onChange={handleChange} />
-                            </Form.Item>
-                            <Form.Item label="Отчество">
-                                <Input name="middleName" value={formData.middleName} onChange={handleChange} />
-                            </Form.Item>
-                            <Form.Item label="Телефон">
-                                <Input name="phone" value={formData.phone} onChange={handleChange} />
-                            </Form.Item>
-                            <Form.Item label="Email">
-                                <Input name="email" value={formData.email} onChange={handleChange} />
-                            </Form.Item>
-                        </div>
-
-                        <Form.Item label="Описание">
-                            <Input.TextArea name="description" value={formData.description} onChange={handleChange} />
+            <Form style={{ width: call ? '410px' : '410', padding: call ? 0 : '0 600px 0 0px' }} layout="vertical">
+                <>
+                    <div className='CollRaz'>
+                        <Form.Item label="Имя">
+                            <Input name="firstName" value={formData.firstName} onChange={handleChange} />
                         </Form.Item>
-
-                        <div>
-                            {formData.fields.map((el) => (
-                                <div key={el.id} className='fields'>
-                                    <div>
-                                        <label>Имя</label>
-                                        <Input value={el.name} name='name' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
-                                    </div>
-                                    <div>
-                                        <label>Значение</label>
-                                        <Input value={el.value} name='value' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
-                                    </div>
-                                    {el.id !== formData.fields[0].id && (
-                                        <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
-                                    )}
-                                </div>
-                            ))}
-                            {formData.fields.length && (
-                                <nav className='addFields' onClick={addFields}>+</nav>
-                            )}
-                        </div>
+                        <Form.Item label="Фамилия">
+                            <Input name="lastName" value={formData.lastName} onChange={handleChange} />
+                        </Form.Item>
+                        <Form.Item label="Отчество">
+                            <Input name="middleName" value={formData.middleName} onChange={handleChange} />
+                        </Form.Item>
+                        <Form.Item label="Телефон">
+                            <Input name="phone" value={formData.phone} onChange={handleChange} />
+                        </Form.Item>
+                        <Form.Item label="Email">
+                            <Input name="email" value={formData.email} onChange={handleChange} />
+                        </Form.Item>
                     </div>
-                </Form>
-                <Button styles={{ margin: '0 auto' }} type="primary" style={{ height: '40px', margin: '20px auto' }} onClick={addContact}>
-                    Добавить контакт
-                </Button><br />
-                {!call && <Link style={{ textDecoration: 'none', background: '#0478FF', borderRadius: '10px', color: 'white', padding: '5px 30px', margin: '20px 0' }} to="/contacts">назад</Link>}
-            </div>
-        </>
-    );
+                </>
+
+                <Form.Item label="Описание">
+                    <Input.TextArea name="description" value={formData.description} onChange={handleChange} />
+                </Form.Item>
+                <div>
+                <label></label>
+                    {formData.fields.map((el) => (
+                        <div key={el.id} className='fields'>
+                            <div>
+                                <label>Имя</label>
+                                <Input value={el.name} name='name' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
+                            </div>
+                            <div>
+                                <label>Значение</label>
+                                <Input value={el.value} name='value' onChange={(event) => handleChangeFields(event, el.id)} type="text" />
+                            </div>
+                           
+                                <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
+                            
+                        </div>
+                    ))}
+                        <nav className='addFields' onClick={addFields}>+</nav>
+                    
+                </div>
+
+            </Form>
+            <Button styles={{ margin: '0 auto' }} type="primary" style={{ height: '40px', margin: '20px auto' }} onClick={() => {
+                if (!resUserFinde.length) {
+                    addContact()
+                } if (resUserFinde.length) {
+                    updateContact()
+                }
+            }}>
+                {!resUserFinde.length > 0 ? 'Добавить' : 'Изминить'} контакт
+            </Button><br />
+            {!call && <Link style={{ textDecoration: 'none', background: '#0478FF', borderRadius: '10px', color: 'white', padding: '5px 30px', margin: '20px 0' }} to="/contacts">назад</Link>}
+
+        </div>
+    </>);
 }

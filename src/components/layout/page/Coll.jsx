@@ -9,6 +9,7 @@ import { getToken } from '../../store/StoreGetToken';
 import { jwtDecode } from 'jwt-decode';
 import apiClient from '../../../utils/api';
 import AddContact from './AddContact';
+import { SlCallOut } from 'react-icons/sl';
 // import apiClient from '../../../utils/api';
 // import axios from 'axios';
 // import { jwtDecode } from 'jwt-decode';
@@ -213,7 +214,7 @@ export default function Coll() {
             Authorization: `Bearer ${token}`,
           },
         })
-        accountData = response.data.extensionNumber;
+        accountData = '99' + response.data.extensionNumber;
         console.log(response.data.extensionNumber);
       } else {
         console.error('Access token is missing')
@@ -256,12 +257,10 @@ export default function Coll() {
         }
         console.log(error.response.status);
         console.log(`Аксес токен обнавлен: ${accessToken}`);
-
       }
     } finally {
       setLoading2(false)
     }
-
     JsSIP.debug.enable('JsSIP:*');
     const socket = new JsSIP.WebSocketInterface('wss://192.168.1.129:8089/ws');
     const configuration = {
@@ -279,6 +278,7 @@ export default function Coll() {
         // incoming call here
         session.on("accepted", function () {
           // the call has answered
+
         });
         session.on("confirmed", function () {
           setOpen(true);
@@ -294,7 +294,10 @@ export default function Coll() {
           audioRef.current.play()
         });
       }
+
+      session.accept(configuration);
     });
+
 
     setUA(ua);
 
@@ -306,6 +309,13 @@ export default function Coll() {
     await fetchData2()
 
   }
+  const handleKeyDown = (event) => {
+    // Проверяем, нажата ли клавиша Enter
+    if (event.key === 'Enter') {
+      handleCall(valueInput)
+
+    }
+  };
 
   useEffect(() => { getData() }, [])
 
@@ -342,10 +352,17 @@ export default function Coll() {
       {/* <Link to='auto-redial' className="divAutoColl">
         <button className='btnAutoColl'>Автодозвон</button>
       </Link> */}
-      {addContactCall ? <AddContact call={true} number={valueInput2} /> : <Link to='auto-redial' className="divAutoColl">
-        <button className='btnAutoColl'>Автодозвон</button>
-      </Link>}
-      
+      {addContactCall ? <div>
+        <AddContact call={true} number={valueInput2} />
+        <button style={{ cursor: 'pointer' }} onClick={() => setAddContactCall(false)}>Закрыть</button>
+      </div> :
+        <div className='auto-call'>
+          {/* <Link to='auto-redial' className="divAutoColl">
+           <button className='btnAutoColl'>Автодозвон</button>
+         </Link> */}
+        </div>
+      }
+
       {/* {addContacts} */}
       <div className="collPanel">
         <h1 style={{ opacity: !calling ? 0 : 1 }}>{valueInput2}</h1>
@@ -358,6 +375,7 @@ export default function Coll() {
           value={valueInput}
           name='number'
           placeholder="Введите номер"
+          onKeyDown={handleKeyDown}
         />
         <div className='Nambers'>
           <button onClick={() => funNanbersBtn(1)} className="number">1</button>
@@ -382,7 +400,7 @@ export default function Coll() {
             </button>
           }
           <button>
-            {`=>`}
+            <SlCallOut style={{ color: '#000', fontSize: '30px', fontWeight: '600' }} />
           </button>
         </div>
       </div>
