@@ -8,6 +8,7 @@ import { Button, Modal } from 'antd';
 import { getToken } from '../../store/StoreGetToken';
 import { jwtDecode } from 'jwt-decode';
 import apiClient from '../../../utils/api';
+import AddContact from './AddContact';
 // import apiClient from '../../../utils/api';
 // import axios from 'axios';
 // import { jwtDecode } from 'jwt-decode';
@@ -43,6 +44,7 @@ export default function Coll() {
   const [data, setData] = useState();
   const [loading2, setLoading2] = useState();
   const [data2ExtensionSecret, setData2] = useState();
+  const [addContactCall, setAddContactCall] = useState(false)
 
   const { navigate } = useNavigate();
   useEffect(() => {
@@ -97,6 +99,7 @@ export default function Coll() {
       return; // Остановка выполнения функции, если валидация не пройдена
     }
     if (valueInput.length > 0) {
+      setAddContactCall(true)
       setValueInput2(valueInput)
       setValueInput('')
       setCalling(true)
@@ -319,8 +322,6 @@ export default function Coll() {
         footer={() => (
           <>
             <div className='btnCallinBack'>
-
-
               <Button onClick={accept} style={{ background: '#0CD939' }} className='callinBack'>
                 <img src={iconCollBtn} alt="iconCollBtn" />
                 <span>Принять</span>
@@ -338,9 +339,14 @@ export default function Coll() {
       </Modal>
 
       <div className='bgMain-components-1'></div>
-      <Link to='auto-redial' className="divAutoColl">
+      {/* <Link to='auto-redial' className="divAutoColl">
         <button className='btnAutoColl'>Автодозвон</button>
-      </Link>
+      </Link> */}
+      {addContactCall ? <AddContact call={true} number={valueInput2} /> : <Link to='auto-redial' className="divAutoColl">
+        <button className='btnAutoColl'>Автодозвон</button>
+      </Link>}
+      
+      {/* {addContacts} */}
       <div className="collPanel">
         <h1 style={{ opacity: !calling ? 0 : 1 }}>{valueInput2}</h1>
         <p style={{ opacity: !isActive ? 0 : 1 }}>{`${seconds < 600 ? '0' : ''}${Math.floor((seconds % 3600) / 60)}:${seconds < 10 ? '0' : ''}${seconds % 60}`}</p>

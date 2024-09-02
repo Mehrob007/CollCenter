@@ -411,7 +411,7 @@ main{
     background: #F5F5F5;
     display: flex;
     justify-content: center;
-    margin: 0 0 0 150px;
+    margin: 0 0 0 200px;
     
 }
 main > .CollBox{
@@ -440,7 +440,7 @@ main > div{
 .CollBox{
     width: 100%;
     display: flex;
-    align-items: end;
+    align-items: start;
     justify-content: center;
     gap: 250px;
     background: transparent;
@@ -1342,4 +1342,21 @@ input:focus, textarea:focus{
 }
 :where(.css-dev-only-do-not-override-11lehqq).ant-form::-webkit-scrollbar{
 
+}
+.CollRaz{
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.CollRaz > input{
+    width: 100%;
+}
+.ant-form-item-control-input-content{
+    width: 100%;
+}
+/* .ant-input css-dev-only-do-not-override-11lehqq ant-input-outlined */
+textarea:where(.css-dev-only-do-not-override-11lehqq).ant-input {
+    width: 380px;
 }
