@@ -1366,3 +1366,36 @@ textarea:where(.css-dev-only-do-not-override-11lehqq).ant-input {
     align-items: end;
     width: 410px;
 }
+.AddingProblem{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: 270px;
+    overflow-y: auto;
+    gap: 5px;
+}
+.AddingProblem > h1{
+    font-family: Montserrat;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 31.69px;
+    text-align: left;
+    /* margin: 20px 0; */
+
+}
+.AddingProblem > div:last-child{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px
+}
+.AddingProblem > div{
+    display: flex;
+    flex-direction: column;
+}
+.formCallContacts > div:last-child{
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 10px;
+}

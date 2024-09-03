@@ -4,6 +4,7 @@ import { BsPersonCircle } from 'react-icons/bs'
 import { jwtDecode } from 'jwt-decode' // Remove if not used
 import { getToken } from '../store/StoreGetToken'
 import apiClient from '../../utils/api'
+import { useAuthStoreOperator } from '../store/useAuthStore'
 
 export default function Layout() {
     const [openHeader, setOpenHeader] = useState(false)
@@ -13,6 +14,7 @@ export default function Layout() {
     const { refreshAccessToken } = getToken(state => ({
         refreshAccessToken: state.refreshAccessToken
     }))
+    const { sendDataOperator } = useAuthStoreOperator()
     const [restart, setRestart] = useState(false)
     async function fetchData() {
         try {
@@ -27,6 +29,7 @@ export default function Layout() {
                     },
                 })
                 setData(response.data)
+                sendDataOperator(response.data)
                 // console.log(response.data);
                 
                 setRestart(false)

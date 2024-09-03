@@ -2,7 +2,7 @@
 import create from 'zustand';
 import axios from 'axios';
 
-const useAuthStore = create((set) => ({
+export const useAuthStore = create((set) => ({
     accessToken: localStorage.getItem('accessToken') || null,
     refreshToken: localStorage.getItem('refreshToken') || null,
     
@@ -35,4 +35,11 @@ const useAuthStore = create((set) => ({
     },
 }));
 
-export default useAuthStore;
+ 
+
+export const useAuthStoreOperator = create((set) => ({
+    dataOperator: [],
+    sendDataOperator: (data) => {
+        set({ dataOperator: data })
+    },
+}));
