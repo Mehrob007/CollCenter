@@ -403,7 +403,7 @@ export default function AddContact({ call, number }) {
                 <h2>{!resUserFinde.length > 0 ? 'Добавить' : 'Изминить'} контакт</h2>
                 <Form style={{ width: '410px', padding: call ? 0 : '0 600px 0 0px' }} className='formCallContacts' layout="vertical">
                     <>
-                        <div className='CollRaz'>
+                        <div className='CollRaz' style={{ width: !call && '700px'  }}>
                             <Form.Item label="Имя">
                                 <Input name="firstName" value={formData.firstName} onChange={handleChange} />
                             </Form.Item>
@@ -422,7 +422,7 @@ export default function AddContact({ call, number }) {
                         </div>
                     </>
 
-                    <Form.Item label="Описание">
+                    <Form.Item label="Описание" style={{width: !call && '500px' }}>
                         <Input.TextArea name="description" value={formData.description} onChange={handleChange} />
                     </Form.Item>
                     <div>

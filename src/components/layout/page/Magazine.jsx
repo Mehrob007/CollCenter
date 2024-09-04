@@ -26,7 +26,7 @@ export default function Magazine() {
     phone: '',
     description: '',
     email: '',
-    fields: [{ name: '', value: '', id: 1 }],
+    fields: [],
   });
   const [open, setOpen] = useState(false);
   const [dataModal, setDataModal] = useState({});
@@ -393,12 +393,14 @@ export default function Magazine() {
     setFetchingSearchUsers(true);
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+      const response = await apiClient.get(`/api/users/all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setDataSearchUsers(response.data);  // Предположим, что данные приходят в виде массива объектов
+      // console.log(response.data.users);
+
+      setDataSearchUsers(response.data.users);  // Предположим, что данные приходят в виде массива объектов
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
       if (error.response.status === 401) {
@@ -439,12 +441,14 @@ export default function Magazine() {
     setFetchingSearchContact(true);
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+      const response = await apiClient.get(`/api/contacts//all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setDataSearchContact(response.data);  // Предположим, что данные приходят в виде массива объектов
+      console.log(response.data.contacts);
+
+      setDataSearchContact(response.data.contacts);  // Предположим, что данные приходят в виде массива объектов
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
       if (error.response.status === 401) {
@@ -485,12 +489,12 @@ export default function Magazine() {
     setFetchingSearchCompany(true);
     const token = localStorage.getItem('accessToken');
     try {
-      const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+      const response = await apiClient.get(`/api/companies/all?name=${searchValue}&pagination.limit=25&pagination.page=1`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setDataSearchCompany(response.data);  // Предположим, что данные приходят в виде массива объектов
+      setDataSearchCompany(response.data.companies);  // Предположим, что данные приходят в виде массива объектов
     } catch (error) {
       console.error('Ошибка при выполнении запроса:', error);
       if (error.response.status === 401) {
@@ -525,8 +529,8 @@ export default function Magazine() {
       setDataSearchCompany([]);
     }
   };
- console.log(formDataUser);
-    
+  console.log(formDataUser);
+
 
 
   useEffect(() => {
@@ -579,7 +583,7 @@ export default function Magazine() {
           <Link to={`/contacts/${dataModal.contact.phone}`} style={{ background: '#2EA0FF', color: '#fff' }} className='callinBackContacts'>
             <span>Контакт</span>
           </Link>
-          <Link to={`/create-task/${dataModal.id}`} style={{ background: '#2ea1ff48', color: '#2EA0FF', width: '300px' }} className='callinBackContacts'>
+          <Link to={`/create-task/${dataModal.contact.name}`} style={{ background: '#2ea1ff48', color: '#2EA0FF', width: '300px' }} className='callinBackContacts'>
             <span>Создать Задачу</span>
           </Link>
         </nav>
@@ -609,7 +613,7 @@ export default function Magazine() {
       <div className="infoModalMag">
         <div className="box-modal-createing-elements">
           <div>
-            <label >companyId</label>
+            <label >Компания</label>
             {/* {!loadingCompany &&
 
               <Select
@@ -629,11 +633,11 @@ export default function Magazine() {
                 options={optionsCompany}
               />
             } */}
-             {dataSearchCompany &&
+            {dataSearchCompany &&
               <Select
                 showSearch
                 allowClear
-                placeholder="Исполнитель"
+                placeholder="Компания"
                 notFoundContent={fetchingSearchCompany ? <Spin size="small" /> : null}
                 filterOption={false}
                 style={{ width: '100%', height: '40px' }}
@@ -646,14 +650,14 @@ export default function Magazine() {
                 }}
               >
                 {dataSearchCompany.map((item) => (
-                  <Option key={item.id} value={item.value}>
-                    {item.label}
+                  <Option key={item.id} value={item.id}>
+                    {item.name}
                   </Option>
                 ))}
               </Select>}
           </div>
           <div>
-            <label >contactId</label>
+            <label >Контакт</label>
             {/* {!loadingContacts &&
 
               <Select
@@ -673,11 +677,11 @@ export default function Magazine() {
                 options={optionsContacts}
               />
             } */}
-             {dataSearchContact &&
+            {dataSearchContact &&
               <Select
                 showSearch
                 allowClear
-                placeholder="Исполнитель"
+                placeholder="Контакт"
                 notFoundContent={fetchingSearchContact ? <Spin size="small" /> : null}
                 filterOption={false}
                 style={{ width: '100%', height: '40px' }}
@@ -690,14 +694,14 @@ export default function Magazine() {
                 }}
               >
                 {dataSearchContact.map((item) => (
-                  <Option key={item.id} value={item.value}>
-                    {item.label}
+                  <Option key={item.id} value={item.id}>
+                    {item.name} {item.surname[0]}. {item.middleName[0]}.
                   </Option>
                 ))}
               </Select>}
           </div>
           <div>
-            <label >userId</label>
+            <label >Исполнитель</label>
             {dataSearchUsers &&
               <Select
                 showSearch
@@ -715,8 +719,8 @@ export default function Magazine() {
                 }}
               >
                 {dataSearchUsers.map((item) => (
-                  <Option key={item.id} value={item.value}>
-                    {item.label}
+                  <Option key={item.id} value={item.id}>
+                    {item.username}
                   </Option>
                 ))}
               </Select>}
@@ -752,14 +756,14 @@ export default function Magazine() {
                   />
 
                 </div>
-                {el.id != formData.fields[0].id && (
-                  <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
-                )}
+
+                <nav className='removeFields' onClick={() => removeFields(el.id)}>-</nav>
+
               </div>
             ))}
-            {formData.fields.length && (
-              <nav className='addFields' onClick={() => addFields(formData.fields.length + 1)}>+</nav>
-            )}
+
+            <nav className='addFields' onClick={() => addFields(formData.fields.length + 1)}>+</nav>
+
 
 
           </div>

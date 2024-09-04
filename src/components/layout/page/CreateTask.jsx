@@ -190,12 +190,14 @@ export default function CreateTask() {
         setFetchingSearchUsers(true);
         const token = localStorage.getItem('accessToken');
         try {
-            const response = await apiClient.get(`/api/search/all?${searchValue}`, {
+            const response = await apiClient.get(`/api/users/all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setDataSearchUsers(response.data);  // Предположим, что данные приходят в виде массива объектов
+            console.log(response.data.users);
+
+            setDataSearchUsers(response.data.users);  // Предположим, что данные приходят в виде массива объектов
         } catch (error) {
             console.error('Ошибка при выполнении запроса:', error);
             if (error.response.status === 401) {
@@ -246,7 +248,7 @@ export default function CreateTask() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log(res);
+            console.log(res.data);
             toast.success('Задача успешно создана', {
                 position: "top-right",
                 autoClose: 5000,
@@ -273,17 +275,30 @@ export default function CreateTask() {
             });
         }
     };
+    useEffect(() => {
+        if (interactionIdContacts) {
+            fetchOptions(interactionIdContacts)
+        }
+    }, [])
 
     const fetchOptions = async (searchValue) => {
         setFetchingSearch(true);
         const token = localStorage.getItem('accessToken');
         try {
-            const response = await apiClient.get(`api/search/call/all/?${interactionIdContacts || searchValue}`, {
+            //interactions/all?pagination.limit=25&pagination.page=1&search=search
+            const response = await apiClient.get(`api/interactions/all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setDataSearch(response.data);  // Предположим, что данные приходят в виде массива объектов
+            console.log(response.data.interactions);
+            if (interactionIdContacts) {
+                setFormData(prev => ({
+                    ...prev,
+                    interactionId: response.data.interactions[0],
+                }))
+            }
+            setDataSearch(response.data.interactions);  // Предположим, что данные приходят в виде массива объектов
         } catch (error) {
             console.error('Ошибка при выполнении запроса:', error);
             if (error.response.status === 401) {
@@ -333,28 +348,46 @@ export default function CreateTask() {
             <form className='formDataWL' onSubmit={funSendLetter}>
                 <div>
                     <label>Взаимодействие</label>
-                    {dataSearch &&
+                    {
                         <Select
                             showSearch
                             allowClear
                             placeholder="Взаимодействие"
                             notFoundContent={fetchingSearch ? <Spin size="small" /> : null}
                             filterOption={false}
+                            value={formData.interactionId ? {
+                                label: `${formData.interactionId.contact.name} ${formData.interactionId.contact.surname[0]}. ${formData.interactionId.contact.middleName[0]}. ${formData.interactionId.interactionDate.split('T')[0]}`,
+                                value: formData.interactionId.id,
+                            } : 'Взаимодействие'} 
+                            labelInValue // Позволяет Select работать с объектами { label, value }
                             onSearch={handleSearch}
                             style={{ width: '100%', height: '40px' }}
-                            onChange={(value) => {
+                            onChange={(selected) => {
                                 setFormData((prev) => ({
                                     ...prev,
-                                    interactionId: value
+                                    interactionId: {
+                                        id: selected.value,
+                                        contact: {
+                                            name: selected.label.split(' ')[0],
+                                            surname: selected.label.split(' ')[1].replace('.', ''),
+                                            middleName: selected.label.split(' ')[2].replace('.', ''),
+                                        },
+                                        interactionDate: formData.interactionId.interactionDate, // можете обновить или оставить прежним
+                                    }
                                 }));
                             }}
                         >
-                            {dataSearch.map((item) => (
-                                <Option key={item.id} value={item.value}>
-                                    {item.label}
+                            {dataSearch?.map((item) => (
+                                <Option
+                                    key={item.id}
+                                    value={item.contact.id}
+                                    label={`${item.contact.name} ${item.contact.surname[0]}. ${item.contact.middleName[0]}. ${item.interactionDate.split('T')[0]}`}
+                                >
+                                    {item.contact.name} {item.contact.surname[0]}. {item.contact.middleName[0]}. {item.interactionDate.split('T')[0]}
                                 </Option>
                             ))}
                         </Select>
+
                     }
                 </div>
                 <div>
@@ -384,8 +417,9 @@ export default function CreateTask() {
                             options={!loading && options}
                         />
                     </Space> */}
-                    {dataSearchUsers &&
+                    {
                         <Select
+                            mode="multiple"
                             showSearch
                             allowClear
                             placeholder="Исполнитель"
@@ -400,9 +434,9 @@ export default function CreateTask() {
                                 }));
                             }}
                         >
-                            {dataSearchUsers.map((item) => (
-                                <Option key={item.id} value={item.value}>
-                                    {item.label}
+                            {dataSearchUsers?.map((item) => (
+                                <Option key={item.id} value={item.id}>
+                                    {item.username}
                                 </Option>
                             ))}
                         </Select>}

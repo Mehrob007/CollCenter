@@ -1296,6 +1296,7 @@ input:focus, textarea:focus{
   .addFields{
     width: 40px;
     height: 40px;
+    padding: 0 12px;
     border-radius: 10px;
     background-color: #ccc;
     display: flex;
@@ -1312,14 +1313,14 @@ input:focus, textarea:focus{
   .fields > div{
     display: flex;
     flex-direction: column;
-    /* justify-content: start; */
+    justify-content: space-between;
   }
   .fields > div > input{
     border-radius: 10px;
     border: 1px solid #ccc;
     padding: 10px;
     background-color: transparent;
-    width: 150px;
+    max-width: 170px;
   }
   
 /* .htCore{
@@ -1349,6 +1350,10 @@ input:focus, textarea:focus{
     /* justify-content: center; */
     flex-wrap: wrap;
     gap: 10px;
+    max-width: 600px;
+    width: 100%;
+    min-width: 400px;
+    height: auto;
 }
 .CollRaz > input{
     width: 100%;
@@ -1399,3 +1404,6 @@ textarea:where(.css-dev-only-do-not-override-11lehqq).ant-input {
     justify-content: start;
     gap: 10px;
 }
+/* :where(.css-dev-only-do-not-override-11lehqq).ant-form-item{
+    width:570px;
+} */
