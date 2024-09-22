@@ -291,58 +291,51 @@ export default function Magazine() {
   }
   async function fetchData(anotherStatus = false, id) {
     if (anotherStatus) {
-      setData([]);
+        setData([]);
+        setVibor(id);
+        setCurrentPage(1); // Сбрасываем страницу при новом запросе
+    } else {
+        setCurrentPage((prev) => prev + 1); // Увеличиваем номер страницы
     }
-    setVibor(id)
-    try {
-      const token = localStorage.getItem('accessToken');
-      setLoading(true);
-      if (token) {
-        const response = await apiClient.get(`/api/interactions/${id !== 'all' ? `call/all?pagination.limit=25&pagination.page=${anotherStatus ? (currentPage == 2 ? 1 : currentPage) : currentPage}&type=${id}` : `all/?pagination.limit=25&pagination.page=${currentPage}`}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (Array.isArray(response.data.interactions)) {
-          setData((prev) => [...prev, ...response.data.interactions]);
-        } else {
-          console.error('Ожидался массив, но получен другой тип данных:', response.data.interactions);
-        }
-        // console.log(response.data);
-        if (anotherStatus) {
-          setCurrentPage(1);
-        }
-        else {
-          setCurrentPage((el) => el + 1);
-        }
-        // setTotalCount(response.headers['x-total-count']);
-      } else {
-        console.error('Access token отсутствует');
-      }
 
-    } catch (error) {
-      console.error('Ошибка при выполнении запроса:', error);
-      if (error.response.status === 401) {
-        let accessToken = await refreshAccessToken()
-        let booleanRes = Boolean(accessToken)
-        if (booleanRes) {
-          setFetching(true)
+    try {
+        const token = localStorage.getItem('accessToken');
+        setLoading(true);
+        
+        if (token) {
+            const response = await apiClient.get(`/api/interactions/${id !== 'all' ? `call/all?pagination.limit=25&pagination.page=${currentPage}&type=${id}` : `all/?pagination.limit=25&pagination.page=${currentPage}`}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (Array.isArray(response.data.interactions)) {
+                setData((prev) => [...prev, ...response.data.interactions]); // Добавляем новые данные
+            } else {
+                console.error('Ожидался массив, но получен другой тип данных:', response.data.interactions);
+            }
+        } else {
+            console.error('Access token отсутствует');
         }
-        console.log(error.response.status);
-        console.log(`Аксес токен обнавлен: ${accessToken}`);
-      }
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        if (error.response.status === 401) {
+            let accessToken = await refreshAccessToken();
+            if (accessToken) {
+                setFetching(true);
+            }
+        }
     } finally {
-      setLoading(false);
-      setFetching(false);
+        setLoading(false);
+        setFetching(false); // Сбрасываем флаг после загрузки
     }
-  }
+}
   const scrollHandler = (e) => {
-    console.log('scroll');
     const target = e.target;
-    if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && data.length) {
-      setFetching(true);
+    // Проверяем, дошел ли пользователь до конца списка
+    if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 100 && !fetching) {
+        setFetching(true); // Устанавливаем флаг, чтобы предотвратить повторные вызовы
     }
-  };
+};
+
   const OpenModalCreate = (prev) => {
     setOpen(true);
     setDataModal(prev)
@@ -535,9 +528,10 @@ export default function Magazine() {
 
   useEffect(() => {
     if (fetching) {
-      fetchData(false, vibor);
+        // Загружаем новые данные при включении флага fetching
+        fetchData(false, vibor); // Передаем текущий фильтр
     }
-  }, [fetching]);
+}, [fetching]);
   // console.log(data);
 
 

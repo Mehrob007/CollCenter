@@ -79,7 +79,7 @@ export default function Layout() {
                         <div className="person">
                             <BsPersonCircle />
                         </div>
-                        <div className="personInfo" style={{ minWidth: openHeader ? '110px' : '0' }}>
+                        <div className="personInfo" style={{ width: openHeader ? '110px' : '0' , transition: 'all 1s liner'}}>
                             {loading ? (
                                 <h1>Loading...</h1>
                             ) : (
@@ -112,11 +112,11 @@ export default function Layout() {
                             <div className="iconMenu4"></div>
                             <span style={{ width: openHeader ? '120px' : '30px' }}>Журнал</span>
                         </NavLink>
-                        {/* <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="menejment">
+                         <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="menejment">
                             <div className="iconMenu5"></div>
                             <span style={{ width: openHeader ? '120px' : '30px' }}>Операторы</span>
                         </NavLink>
-                        <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="otchot">
+                        {/*<NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="otchot">
                             <div className="iconMenu6"></div>
                             <span style={{ width: openHeader ? '120px' : '30px' }}>Отчеты</span> 
                         </NavLink>*/}

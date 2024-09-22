@@ -5,11 +5,10 @@ import apiClient from '../../../utils/api';
 import { getToken } from '../../store/StoreGetToken';
 import { Link, useNavigate } from 'react-router-dom';
 import { Option } from 'antd/es/mentions';
-import { useAuthStoreOperator } from '../../store/useAuthStore';
+import { useAuthStoreOperator, useStateModal } from '../../store/useAuthStore';
 
 export default function AddContact({ call, number }) {
     const [formDataContact, setFormDataContact] = useState({});
-
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -19,14 +18,16 @@ export default function AddContact({ call, number }) {
         description: '',
         fields: [],
     });
-    console.log(formDataContact);
+    const { setChengeState } = useStateModal(state => ({
+        setChengeState: state.setChengeState
+      }))
     const [formDataProblem, setFormDataProblem] = useState({
         description: '',
-        fields: [],
+        fields: [{ name: 'Проблема', value: '', id: 1 }],
         company: ''
     })
     const { dataOperator } = useAuthStoreOperator()
- 
+
     const [dataSearch, setDataSearch] = useState([]);
     const [fetchingSearch, setFetchingSearch] = useState(false);
 
@@ -37,7 +38,6 @@ export default function AddContact({ call, number }) {
     const [contactId, setContactId] = useState('')
 
     const [dataTimeG, setDataTimeG] = useState('')
-
 
     const getUserPhone = async () => {
         setResUserFinde('')
@@ -71,7 +71,7 @@ export default function AddContact({ call, number }) {
         //     fields: res.data.contacts[0].fields || [],
         // })
     }
-    
+
 
 
     const handleChange = (e) => {
@@ -157,75 +157,37 @@ export default function AddContact({ call, number }) {
         }));
     }
 
-    const addContact = async () => {
-        let token = localStorage.getItem('accessToken');
+    const validataError = (message) => {
+        toast.error(message, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+        });
+        return;
+    }
 
-        // Валидация обязательных полей
-        if (!formData.firstName || !formData.lastName || !formData.phone) {
-            toast.error('Заполните необходимые поля', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Bounce,
-            });
-            return;
-        }
+    // const addContact = async () => {
 
-        try {
-            const res = await apiClient.post(`api/contacts/?name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}&email=${formData.email}&description=${formData.description}&fields=${JSON.stringify(formData.fields)}`, {
-                name: formData.firstName,
-                surname: formData.lastName,
-                middleName: formData.middleName,
-                phone: formData.phone,
-                email: formData.email,
-                description: formData.description,
-                fields: formData.fields,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            console.log(res);
-            toast.success('Контакт успешно добавлен!');
-            // Очистка формы после успешного добавления
-            setFormData({
-                firstName: '',
-                lastName: '',
-                middleName: '',
-                phone: '',
-                email: '',
-                description: '',
-                fields: [],
-            });
-        } catch (error) {
-            console.error(error);
-            if (error.response && error.response.status === 401) {
-                let accessToken = await refreshAccessToken();
-                let booleanRes = Boolean(accessToken);
-                if (booleanRes) {
-                    navigate(0);
-                } else {
-                    console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
-                }
-            }
-        }
-    };
+    // };
     const fetchOptions = async (searchValue) => {
         setFetchingSearch(true);
         const token = localStorage.getItem('accessToken');
         try {
-            const response = await apiClient.get(`api/search/call/all/?${searchValue}`, {
+            const response = await apiClient.get(`api/companies/all/?name=${searchValue}&pagination.limit=15&pagination.page=1`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setFormDataProblem({ ...formDataProblem, company: response.data[0] });  // Предположим, что данные приходят в виде массива объектов
+            console.log(response.data);
+            setDataSearch(response.data.companies)
+
+            // setFormDataProblem({ ...formDataProblem, company: response.data[0] });  // Предположим, что данные приходят в виде массива объектов
         } catch (error) {
             console.error('Ошибка при выполнении запроса:', error);
             if (error.response.status === 401) {
@@ -261,65 +223,9 @@ export default function AddContact({ call, number }) {
         }
     };
 
-    const updateContact = async () => {
-        let token = localStorage.getItem('accessToken');
+    // const updateContact = async () => {
 
-        // Валидация обязательных полей
-        if (!formData.firstName || !formData.lastName || !formData.phone) {
-            toast.error('Заполните необходимые поля', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Bounce,
-            });
-            return;
-        }
-
-        try {
-            const res = await apiClient.put(`api/contacts/?id=${contactId}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}${formData.email && `&email=${formData.email}`}${formData.description && `&description=${formData.description}`}&fields=${JSON.stringify(formData.fields)}`, {
-                name: formData.firstName,
-                surname: formData.lastName,
-                middleName: formData.middleName,
-                phone: formData.phone,
-                email: formData.email,
-                description: formData.description,
-                fields: formData.fields,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            console.log(res);
-            toast.success('Контакт успешно обновлен!');
-            // Очистка формы после успешного обновления
-            setFormData({
-                firstName: '',
-                lastName: '',
-                middleName: '',
-                phone: '',
-                email: '',
-                description: '',
-                fields: [],
-            });
-        } catch (error) {
-            console.error(error);
-            if (error.response && error.response.status === 401) {
-                let accessToken = await refreshAccessToken();
-                let booleanRes = Boolean(accessToken);
-                if (booleanRes) {
-                    navigate(0);
-                } else {
-                    console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
-                }
-            }
-        }
-    };
+    // };
     useEffect(() => {
         if (call) {
             const dateTime = new Date().toISOString();
@@ -328,37 +234,85 @@ export default function AddContact({ call, number }) {
         }
     }, [call])
 
+
+
     const sendProblem = async () => {
+        
         let token = localStorage.getItem('accessToken');
-        if (!formDataProblem.company || !formDataProblem.description ) {
-            toast.error('Заполните необходимые поля', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Bounce,
-            });
+        if (!formData.firstName || !formData.lastName || !formData.phone || !formDataProblem.company || !formDataProblem.description || !formDataProblem.fields[0]) {
+            validataError('Заполните необходимые поля')
             return;
         }
         if (contactId.length <= 0) {
-            toast.error('Этот контакт не существует.', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-                transition: Bounce,
-            });
+            validataError('Этот элемент не существует.')
             return;
-        }
+        }  
+        if (!resUserFinde.length) {
+            try {
+                const res = await apiClient.post(`api/contacts/?name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}&email=${formData.email}&description=${formData.description}&fields=${JSON.stringify(formData.fields)}`, {
+                    name: formData.firstName,
+                    surname: formData.lastName,
+                    middleName: formData.middleName,
+                    phone: formData.phone,
+                    email: formData.email,
+                    description: formData.description,
+                    fields: formData.fields,
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
+                console.log(res);
+                
+            } catch (error) {
+                console.error(error);
+                if (error.response && error.response.status === 401) {
+                    let accessToken = await refreshAccessToken();
+                    let booleanRes = Boolean(accessToken);
+                    if (booleanRes) {
+                        navigate(0);
+                    } else {
+                        console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
+                    }
+                }
+            }
+        } if (resUserFinde.length) {
+            // let token = localStorage.getItem('accessToken');
+
+            // Валидация обязательных полей
+          
+
+            try {
+                const res = await apiClient.put(`api/contacts/?id=${contactId}&name=${formData.firstName}&surname=${formData.lastName}&phone=${formData.phone}&middleName=${formData.middleName}${formData.email && `&email=${formData.email}`}${formData.description && `&description=${formData.description}`}&fields=${JSON.stringify(formData.fields)}`, {
+                    name: formData.firstName,
+                    surname: formData.lastName,
+                    middleName: formData.middleName,
+                    phone: formData.phone,
+                    email: formData.email,
+                    description: formData.description,
+                    fields: formData.fields,
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                console.log(res);
+            } catch (error) {
+                console.error(error);
+                if (error.response && error.response.status === 401) {
+                    let accessToken = await refreshAccessToken();
+                    let booleanRes = Boolean(accessToken);
+                    if (booleanRes) {
+                        navigate(0);
+                    } else {
+                        console.log('Не удалось выполнить действие: отсутствуют необходимые данные.');
+                    }
+                }
+            }
+        }
+        // let token = localStorage.getItem('accessToken');
         try {
             const res = await apiClient.post(`api/interactions/call?description=${formDataProblem.description}&fields=${JSON.stringify(formDataProblem.fields)}&companyId=${formDataProblem.company}&contactId=${contactId}&userId=${dataOperator.id}&interactionDate=${dataTimeG}&type=${1}`, {
                 name: formDataProblem.firstName,
@@ -373,15 +327,26 @@ export default function AddContact({ call, number }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
+            
             console.log(res);
-            toast.success('Добавлено сведение об ошибке!');
-            // Очистка формы после успешного добавления
-            formDataProblem({
-                company: '',
-                description: '',
-                fields: [],
-            });
+            setChengeState(false)
+            toast.success('Контакт успешно добавлен!');
+                // Очистка формы после успешного добавления
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    middleName: '',
+                    phone: '',
+                    email: '',
+                    description: '',
+                    fields: [],
+                });
+                formDataProblem({
+                    company: '',
+                    description: '',
+                    fields: [],
+                })
+                
         } catch (error) {
             console.error(error);
             if (error.response && error.response.status === 401) {
@@ -394,16 +359,20 @@ export default function AddContact({ call, number }) {
                 }
             }
         }
+
     }
 
+    // console.log(formDataProblem);
+
+
     return (<>
-        <div >
+        <div>
 
             <>
                 <h2>{!resUserFinde.length > 0 ? 'Добавить' : 'Изминить'} контакт</h2>
-                <Form style={{ width: '410px', padding: call ? 0 : '0 600px 0 0px' }} className='formCallContacts' layout="vertical">
+                <Form style={{ width: '610px', padding: call ? 0 : '0 600px 0 0px' }} className='formCallContacts' layout="vertical">
                     <>
-                        <div className='CollRaz' style={{ width: !call && '700px'  }}>
+                        <div className='CollRaz' style={{ width: !call && '700px' }}>
                             <Form.Item label="Имя">
                                 <Input name="firstName" value={formData.firstName} onChange={handleChange} />
                             </Form.Item>
@@ -422,7 +391,7 @@ export default function AddContact({ call, number }) {
                         </div>
                     </>
 
-                    <Form.Item label="Описание" style={{width: !call && '500px' }}>
+                    <Form.Item label="Описание" style={{ width: !call && '500px' }}>
                         <Input.TextArea name="description" value={formData.description} onChange={handleChange} />
                     </Form.Item>
                     <div>
@@ -446,7 +415,7 @@ export default function AddContact({ call, number }) {
                     </div>
                     <div>
                         <nav className='addFields' onClick={addFields}>+</nav>
-                        <Button type="primary" style={{ height: '40px', margin: '20px 0' }} onClick={() => {
+                        {/* <Button type="primary" style={{ height: '40px', margin: '20px 0' }} onClick={() => {
                             if (!resUserFinde.length) {
                                 addContact()
                             } if (resUserFinde.length) {
@@ -454,9 +423,8 @@ export default function AddContact({ call, number }) {
                             }
                         }}>
                             {!resUserFinde.length > 0 ? 'Добавить' : 'Изминить'} контакт
-                        </Button>
+                        </Button> */}
                     </div>
-
                 </Form>
                 <div>
 
@@ -476,15 +444,15 @@ export default function AddContact({ call, number }) {
                                     onSearch={handleSearch}
                                     style={{ width: '100%', height: '40px' }}
                                     onChange={(value) => {
-                                        setFormData((prev) => ({
+                                        setFormDataProblem((prev) => ({
                                             ...prev,
-                                            interactionId: value
+                                            company: value
                                         }));
                                     }}
                                 >
                                     {dataSearch.map((item) => (
-                                        <Option key={item.id} value={item.value}>
-                                            {item.label}
+                                        <Option key={item.id} value={item.id}>
+                                            {item.name}
                                         </Option>
                                     ))}
                                 </Select>
@@ -496,31 +464,31 @@ export default function AddContact({ call, number }) {
                         </div>
 
                         <div>
-                            <label></label>
+                            {/* <label></label> */}
                             {formDataProblem.fields.map((el) => (
                                 <div key={el.id} className='fields'>
                                     <div>
                                         <label>Имя</label>
-                                        <Input value={el.name} name='name' onChange={(event) => handleChangeFieldsProblems(event, el.id)} type="text" />
+                                        <Input value={el.name} name='name' type="text" />
                                     </div>
                                     <div>
                                         <label>Значение</label>
                                         <Input value={el.value} name='value' onChange={(event) => handleChangeFieldsProblems(event, el.id)} type="text" />
                                     </div>
-
-                                    <nav className='removeFields' onClick={() => removeFieldsProblems(el.id)}>-</nav>
-
+                                    {formDataProblem.fields[0].id != el.id && <nav className='removeFields' onClick={() => removeFieldsProblems(el.id)}>-</nav>}
                                 </div>
                             ))}
 
                         </div>
                         <div className='Fbottom'>
                             <nav className='addFields' onClick={addFieldsProblems}>+</nav>
-                            <Button type="primary" style={{ height: '40px', }} onClick={() => { sendProblem() }}>
-                                Отправить
-                            </Button>
                         </div>
                     </form>
+                    <Button type="primary" style={{ height: '40px', }} onClick={async () => {
+                        sendProblem()
+                    }}>
+                        Отправить
+                    </Button>
 
                 </>}
                 {!call && <>

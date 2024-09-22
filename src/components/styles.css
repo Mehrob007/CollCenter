@@ -1,6 +1,5 @@
 body{
     background: #F5F5F5;
-
 }
 input{
     color: #000000;
@@ -408,7 +407,7 @@ main{
     /* padding-right: auto;  */
     padding-top: 5vh;
     /* padding-bottom: 165px; */
-    background: #F5F5F5;
+    /* background: #F5F5F5; */
     display: flex;
     justify-content: center;
     margin: 0 0 0 200px;
@@ -417,14 +416,14 @@ main{
 main > .CollBox{
     position: relative;
     z-index: 100;
-    background: #F5F5F5;
+    /* background: #F5F5F5; */
     margin: 0 auto;
     /* margin-left: 500px; */
 }
 main > div{
     position: relative;
     z-index: 100;
-    background: #F5F5F5;
+    /* background: #F5F5F5; */
     margin: 0 auto;
     /* margin-left: 170px; */
 }
@@ -442,7 +441,7 @@ main > div{
     display: flex;
     align-items: start;
     justify-content: center;
-    gap: 250px;
+    gap: 200px;
     background: transparent;
     position: relative;
     /* margin: 0 50px; */
@@ -970,7 +969,7 @@ input:focus, textarea:focus{
     display: flex;
     gap: 20px;
     margin: 0 auto;
-    margin-bottom: -70px;
+    /* margin-bottom: -70px; */
 }
 .box-modal-create-elements{
     height: 200px;
@@ -1350,7 +1349,7 @@ input:focus, textarea:focus{
     /* justify-content: center; */
     flex-wrap: wrap;
     gap: 10px;
-    max-width: 600px;
+    max-width: 900px;
     width: 100%;
     min-width: 400px;
     height: auto;
@@ -1369,13 +1368,13 @@ textarea:where(.css-dev-only-do-not-override-11lehqq).ant-input {
     height: 100%;
     display: flex;
     align-items: end;
-    width: 410px;
+    width:610px;
 }
 .AddingProblem{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    max-height: 270px;
+    max-height: 300px;
     overflow-y: auto;
     gap: 5px;
 }
@@ -1407,3 +1406,20 @@ textarea:where(.css-dev-only-do-not-override-11lehqq).ant-input {
 /* :where(.css-dev-only-do-not-override-11lehqq).ant-form-item{
     width:570px;
 } */
+ /* p,h1,input, label, input::placeholder, :where(.css-dev-only-do-not-override-11lehqq).ant-modal .ant-modal-content{
+    background-color: #333;
+    color: white;
+ } */
+  .buttonMenejDele{
+    cursor: pointer;
+    width: 150px;
+    height: 40px;
+  }
+  .addOperator{
+    display: flex;
+    justify-content: start;
+    align-items: start;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+  }

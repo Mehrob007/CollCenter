@@ -24,8 +24,9 @@ import AutoRedial from '../../components/layout/page/AutoRedial'
 import WriteLetter from '../../components/layout/page/WriteLetter'
 import CreateTask from '../../components/layout/page/CreateTask'
 import Menejment from '../../components/layout/page/pageDop/Menejment';
-import Otchot from '../../components/layout/page/pageDop/Otchot';
+// import Otchot from '../../components/layout/page/pageDop/Otchot';
 import AddContact from '../../components/layout/page/AddContact';
+import AddingOperator from '../../components/layout/page/pageDop/AddingOperator';
 
 export default function Router() {
   
@@ -52,6 +53,7 @@ export default function Router() {
           <Route path="contacts/:poiskNumber" element={<Contacts />} />
           <Route path="magazine" element={<Magazine />} />
           <Route path="menejment" element={<Menejment />} />
+          <Route path="adding-operator" element={<AddingOperator />} />
           {/* <Route path="otchot" element={<Otchot />} /> */}
           <Route path="add-contacts" element={<AddContact />} />
         </Route>

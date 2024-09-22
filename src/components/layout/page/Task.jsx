@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getToken } from '../../store/StoreGetToken';
 import apiClient from '../../../utils/api';
-import { Modal, Select, Space } from 'antd';
+import { Modal, Select, Space, Spin } from 'antd';
 import cloasX from '../../../assets/icon/x.svg'
+import CreateTask from './CreateTask';
+import { Option } from 'antd/es/mentions';
+import { Bounce, toast } from 'react-toastify';
 
 export default function Task() {
 
@@ -23,10 +26,12 @@ export default function Task() {
   const [fetching2, setFetching2] = useState(false);
   const [fetching3, setFetching3] = useState(false);
   const [options, setOptions] = useState([]);
-  // const [data2, setData2] = useState([]);
-  // const [data3, setData3] = useState([]);
+  const [data2, setData2] = useState([]);
+  const [data3, setData3] = useState([]);
   const [currentPage3, setCurrentPage3] = useState(1);
   const [currentPage2, setCurrentPage2] = useState(1);
+  const [dataSearch, setDataSearch] = useState([]);
+  const [fetchingSearch, setFetchingSearch] = useState(false);
   const ApplicationTaskPriority = [
     { label: 'Низкий', value: 0 },
     { label: 'Средний', value: 1 },
@@ -49,56 +54,59 @@ export default function Task() {
   ];
   console.log(status);
 
+  const [dataSearchUsers, setDataSearchUsers] = useState([])
+  const [fetchingSearchUsers, setFetchingSearchUsers] = useState([])
+
 
   async function fetchData(anotherStatus = false, id) {
     setVibor(id)
-      try {
-        // console.log(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${status}`);
-        console.log(`THIS STATUS IS ${status}`);
-  
-        if(anotherStatus){
-          setData([]);
-        }
-        const token = localStorage.getItem('accessToken');
-        setLoading(true);
-        if (token) {
-          const response = await apiClient.get(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (Array.isArray(response.data.tasks)) {
-            setData((prev) => [...prev, ...response.data.tasks]);
-          } else {
-            console.error('Ожидался массив, но получен другой тип данных:', response.data.tasks);
-          }
-          console.log(response.data);
-  
-          if (anotherStatus) {
-            setCurrentPage(1);
-          }
-          else {
-            setCurrentPage((el) => el + 1);
-          }
-          // setTotalCount(response.headers['x-total-count']);
-        } else {
-          console.error('Access token отсутствует');
-        }
-      } catch (error) {
-        console.error('Ошибка при выполнении запроса:', error);
-        if (error.response.status === 401) {
-          let accessToken = refreshAccessToken()
-          let booleanRes = Boolean(accessToken)
-          if (booleanRes) {
-            setFetching(true)
-          }
-          console.log(error.response.status);
-          console.log(`Аксес токен обнавлен: ${accessToken}`);
-        }
-      } finally {
-        setLoading(false);
-        setFetching(false);
+    try {
+      // console.log(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${status}`);
+      console.log(`THIS STATUS IS ${status}`);
+
+      if (anotherStatus) {
+        setData([]);
       }
+      const token = localStorage.getItem('accessToken');
+      setLoading(true);
+      if (token) {
+        const response = await apiClient.get(`/api/tasks/all?pagination.limit=25&pagination.page=${currentPage}&status=${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (Array.isArray(response.data.tasks)) {
+          setData((prev) => [...prev, ...response.data.tasks]);
+        } else {
+          console.error('Ожидался массив, но получен другой тип данных:', response.data.tasks);
+        }
+        console.log(response.data);
+
+        if (anotherStatus) {
+          setCurrentPage(1);
+        }
+        else {
+          setCurrentPage((el) => el + 1);
+        }
+        // setTotalCount(response.headers['x-total-count']);
+      } else {
+        console.error('Access token отсутствует');
+      }
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          setFetching(true)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+    } finally {
+      setLoading(false);
+      setFetching(false);
+    }
   }
 
   const scrollHandler = (e) => {
@@ -110,6 +118,7 @@ export default function Task() {
   };
   const seveDataItemTask = async (el) => {
     el.preventDefault()
+    
     console.log(formData);
     const token = localStorage.getItem('accessToken')
     try {
@@ -120,7 +129,8 @@ export default function Task() {
         }
       })
       console.log(res.data);
-
+      toast.success('Контакт успешно добавлен!');
+      navigate(0)
     } catch (error) {
       console.error(error);
       if (error.response.status === 401) {
@@ -134,6 +144,8 @@ export default function Task() {
     setOpenCreate(true)
     setFormData(dataItem)
     setDataSatae(dataItem)
+    console.log(dataItem.id);
+
   }
   const handleChange = (el) => {
     const { name, value } = el.target;
@@ -145,107 +157,203 @@ export default function Task() {
   console.log(formData);
   const navigate = useNavigate()
 
-  // const getDataSelectLine = async () => {
-  //   const token = localStorage.getItem('accessToken');
-  //   try {
-  //     const response = await apiClient.get(
-  //       `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     setData2((prevState) => [...prevState, ...response.data.interactions]);
-  //     setCurrentPage2((el) => el + 1);
-  //     console.log(response.data.interactions);
+  const getDataSelectLine = async () => {
+    const token = localStorage.getItem('accessToken');
+    try {
+      const response = await apiClient.get(
+        `api/interactions/all?pagination.limit=25&pagination.page=${currentPage2}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setData2((prevState) => [...prevState, ...response.data.interactions]);
+      setCurrentPage2((el) => el + 1);
+      console.log(response.data.interactions);
 
-  //     const arr = response.data.interactions.map(el => [
-  //       { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
-  //     ])
+      const arr = response.data.interactions.map(el => [
+        { value: el.id, label: `${el.contact.surname} ${el.contact.name[0]}.   Дата: ${el.interactionDate.split('T')[0]} ` }
+      ])
 
-  //     setArrObjactInteractionId(...arr)
-  //   } catch (error) {
-  //     console.error("Ошибка при загрузке данных:", error);
-  //   } finally {
-  //     setFetching2(false);
-  //   }
-  // }
-  // const scrollHandler2 = (e) => {
-  //   const target = e.target;
-  //   if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-  //     if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-  //       console.log('scroll');
-  //       setFetching2(true);
-  //     }
-  //   }
-  // };
+      setArrObjactInteractionId(...arr)
+    } catch (error) {
+      console.error("Ошибка при загрузке данных:", error);
+    } finally {
+      setFetching2(false);
+    }
+  }
+  const scrollHandler2 = (e) => {
+    const target = e.target;
+    if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+      if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
+        console.log('scroll');
+        setFetching2(true);
+      }
+    }
+  };
 
-  // const getUserSelectLine = async () => {
-  //   const token = localStorage.getItem('accessToken');
-  //   // console.log(token);
+  const getUserSelectLine = async () => {
+    const token = localStorage.getItem('accessToken');
+    // console.log(token);
 
-  //   try {
-  //     const response = await apiClient.get(
-  //       `api/users/all?pagination.limit=25&pagination.page=${currentPage3}`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     setData3((prevState) => [...prevState, ...response.data.users]);
-  //     setCurrentPage3((el) => el + 1);
-  //     console.log(response.data.users);
+    try {
+      const response = await apiClient.get(
+        `api/users/all?pagination.limit=25&pagination.page=${currentPage3}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setData3((prevState) => [...prevState, ...response.data.users]);
+      setCurrentPage3((el) => el + 1);
+      console.log(response.data.users);
 
-  //     const arr = response.data.users.map(el => {
-  //       return { value: el.id, label: el.username }
-  //     }
-  //     )
-  //     console.log(arr)
+      const arr = response.data.users.map(el => {
+        return { value: el.id, label: el.username }
+      }
+      )
+      console.log(arr)
 
-  //     setOptions(arr)
-  //   } catch (error) {
-  //     console.error("Ошибка при загрузке данных:", error);
-  //   } finally {
-  //     setFetching3(false);
-  //   }
-  // }
-  // const scrollHandler3 = (e) => {
-  //   const target = e.target;
-  //   if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
-  //     if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
-  //       console.log('scroll');
-  //       setFetching3(true)
-  //     }
-  //   }
-  // };
+      setOptions(arr)
+    } catch (error) {
+      console.error("Ошибка при загрузке данных:", error);
+    } finally {
+      setFetching3(false);
+    }
+  }
+  const scrollHandler3 = (e) => {
+    const target = e.target;
+    if (target && target.scrollHeight && target.scrollTop && target.clientHeight) {
+      if (target.scrollHeight - (target.scrollTop + target.clientHeight) < 1) {
+        console.log('scroll');
+        setFetching3(true)
+      }
+    }
+  };
+
+  const fetchOptionsUsers = async (searchValue) => {
+    const token = localStorage.getItem('accessToken');
+    setFetchingSearchUsers(false)
+    try {
+      const res = await apiClient.get(`/api/users/all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      setDataSearchUsers(res.data.users)
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+      toast.error('Ошибка при загрузке данных', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } finally {
+      setFetchingSearchUsers(false);
+    }
+  }
+
+  const handleSearchUsers = (value) => {
+    if (value) {
+      fetchOptionsUsers(value)
+    } else {
+      setDataSearchUsers([])
+    }
+  }
+
+
+  const fetchOptions = async (searchValue) => {
+    setFetchingSearch(true)
+    const token = localStorage.getItem('accessToken');
+    try {
+      const res = await apiClient.get(`api/interactions/all?pagination.limit=15&pagination.page=1&search=${searchValue}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      setDataSearch(res.data.interactions);
+    } catch (error) {
+      console.error('Ошибка при выполнении запроса:', error);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
+      toast.error('Ошибка при загрузке данных', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } finally {
+      setFetchingSearch(false);
+    }
+  }
+
+
+  const handleSearch = (value) => {
+    if (value) {
+      fetchOptions(value);
+    } else {
+      setDataSearch([])
+    }
+  }
+
+  // useEffect(() => {
+  //   // getUserSelectLine();
+  //   fetchData(true, 0)
+  // }, []);
 
   useEffect(() => {
     if (fetching) {
       fetchData();
     }
   }, [fetching]);
-  // useEffect(() => {
-  //   getDataSelectLine();
-  // }, []);
+  useEffect(() => {
+    getDataSelectLine();
+  }, []);
 
   useEffect(() => {
     if (fetching2) {
-      // getDataSelectLine();
+      getDataSelectLine();
     }
   }, [fetching2]);
 
-  useEffect(() => {
-    // getUserSelectLine();
-    fetchData(true, 0)
-  }, []);
 
-  // useEffect(() => {
-  //   if (fetching3) {
-  //     getUserSelectLine();
-  //   }
-  // }, [fetching3]);
+  useEffect(() => {
+    if (fetching3) {
+      getUserSelectLine();
+    }
+  }, [fetching3]);
+
+
   return (
     <div className='MessBox'>
 
@@ -257,6 +365,9 @@ export default function Task() {
         <button className='cloas' onClick={() => setOpenCreate(false)}>
           <img src={cloasX} alt="cloasX" />
         </button>
+        <button className='cloas' onClick={() => setOpenCreate(false)}>
+          <img src={cloasX} alt="cloasX" />
+        </button>
 
         {openCreate &&
           <form className="box-modal-createing-elements" onSubmit={(el) => seveDataItemTask(el, dataState)}>
@@ -264,21 +375,42 @@ export default function Task() {
               <label>Взаимодействие</label>
               <Select
                 showSearch
-                style={{ width: '100%' }}
+                allowClear
                 placeholder="Взаимодействие"
+                notFoundContent={fetchingSearch ? <Spin size="small" /> : null}
+                filterOption={false}
+                labelInValue // Позволяет Select работать с объектами { label, value }
+                // value={getDataTaskState &&
+                // {
+                //   value: getDataTaskState.contact.id,
+                //   label: `${getDataTaskState.contact.name} ${getDataTaskState.contact.surname[0]}. ${getDataTaskState.contact.middleName[0]}. ${getDataTaskState.interactionDate.split('T')[0]}`
+                // }
+                // }
                 optionFilterProp="label"
                 defaultValue={() =>
                   [{ value: formData.interaction.id, label: `${formData.interaction.contact.surname} ${formData.interaction.contact.name[0]}.   Дата: ${formData.interaction.interactionDate.split('T')[0]} ` }]
+                }
+                onSearch={handleSearch}
+                style={{ width: '100%', height: '40px' }}
+                onChange={(selected) => {
+                  console.log(selected);
 
-                } // Corrected defaultValue
-                onChange={(value) => {
                   setFormData((prev) => ({
                     ...prev,
-                    interactionId: value
+                    interactionId: selected.value
                   }));
                 }}
-                options={arrObjactInteractionId}
-              />
+              >
+                {dataSearch?.map((item) => (
+                  <Option
+                    key={item.id}
+                    value={item.contact.id}
+                    label={`${item.contact.name} ${item.contact.surname[0]}. ${item.contact.middleName[0]}. ${item.interactionDate.split('T')[0]}`}
+                  >
+                    {item.contact.name} {item.contact.surname[0]}. {item.contact.middleName[0]}. {item.interactionDate.split('T')[0]}
+                  </Option>
+                ))}
+              </Select>
             </div>
             <div>
               <label>Название задачи</label>
@@ -293,13 +425,13 @@ export default function Task() {
             </div>
             <div>
               <label>Исполнитель</label>
-              <Space onScroll={scrollHandler3} style={{ width: '100%' }} direction="vertical">
+              {/* <Space onScroll={scrollHandler3} style={{ width: '100%' }} direction="vertical">
                 <Select
                   mode="multiple"
                   allowClear
                   style={{ width: '100%', height: '50px' }}
                   placeholder="Исполнитель"
-                  defaultValue={formData.users.map(user => user.id)} // Default values for multiple select
+                  // defaultValue={formData.users.map(user => ({value:user.id, label: user.name}))}
                   onChange={(value) => {
                     setFormData((prev) => {
                       let newValue = options.filter(el => value.includes(el.value))
@@ -313,8 +445,30 @@ export default function Task() {
                   }}
                   options={!loading && options}
                 />
-
-              </Space>
+              </Space> */}
+              <Select
+                mode="multiple"
+                showSearch
+                defaultValue={formData.users.map(user => ({value:user.id, label: user.name}))}
+                allowClear
+                placeholder="Исполнитель"
+                notFoundContent={fetchingSearchUsers ? <Spin size="small" /> : null}
+                filterOption={false}
+                style={{ width: '100%', height: '40px' }}
+                onSearch={handleSearchUsers}
+                onChange={(value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    idUsers: value
+                  }));
+                }}
+              >
+                {dataSearchUsers?.map((item) => (
+                  <Option key={item.id} value={item.id}>
+                    {item.username}
+                  </Option>
+                ))}
+              </Select>
             </div>
 
             <nav className='StatusPrioritet'>
@@ -418,6 +572,7 @@ export default function Task() {
           </form>
         }
 
+
       </Modal>
       <div className="mainTask">
         <h1>Задачи</h1>
@@ -426,25 +581,25 @@ export default function Task() {
       <div className='mainMess' style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
         <div>
           <button onClick={() => {
-            navigate('/task/0')
+            // navigate('/task/0')
             fetchData(true, 0)
-          }} style={{ background: status == 0 ? '#2EA0FF' : 'transparent', color: status == 0 ? 'white' : 'black' }}>Отложеный</button>
+          }} style={{ background: vibor == 0 ? '#2EA0FF' : 'transparent', color: vibor == 0 ? 'white' : 'black' }}>Отложеный</button>
           <button onClick={() => {
-            navigate('/task/1')
+            // navigate('/task/1')
             fetchData(true, 1)
-          }} style={{ background: status == 1 ? '#2EA0FF' : 'transparent', color: status == 1 ? 'white' : 'black' }}>Требует ввода</button>
+          }} style={{ background: vibor == 1 ? '#2EA0FF' : 'transparent', color: vibor == 1 ? 'white' : 'black' }}>Требует ввода</button>
           <button onClick={() => {
-            navigate('/task/2')
+            // navigate('/task/2')
             fetchData(true, 2)
-          }} style={{ background: status == 2 ? '#2EA0FF' : 'transparent', color: status == 2 ? 'white' : 'black' }}>Завершенные</button>
+          }} style={{ background: vibor == 2 ? '#2EA0FF' : 'transparent', color: vibor == 2 ? 'white' : 'black' }}>Завершенные</button>
           <button onClick={() => {
-            navigate('/task/3')
+            // navigate('/task/3')
             fetchData(true, 3)
-          }} style={{ background: status == 3 ? '#2EA0FF' : 'transparent', color: status == 3 ? 'white' : 'black' }}>В прогрессе</button>
+          }} style={{ background: vibor == 3 ? '#2EA0FF' : 'transparent', color: vibor == 3 ? 'white' : 'black' }}>В прогрессе</button>
           <button onClick={() => {
-            navigate('/task/4')
+            // navigate('/task/4')
             fetchData(true, 4)
-          }} style={{ background: status == 4 ? '#2EA0FF' : 'transparent', color: status == 4 ? 'white' : 'black' }}>Не начатые</button>
+          }} style={{ background: vibor == 4 ? '#2EA0FF' : 'transparent', color: vibor == 4 ? 'white' : 'black' }}>Не начатые</button>
         </div>
       </div>
       <div className="ulLiDataMessHeader">
@@ -460,37 +615,16 @@ export default function Task() {
           <h1>Дата создание </h1>
         </div>
       </div>
-      {/* {vibor ? !loading ? data.filter((prevFilter) => prevFilter.isIncoming == false).map((prev, i) => (
-        <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
-          <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
-          <input type="text" onChange={(el) => el.target.value = prev.creator.name} value={prev.creator.name ?? ''} />
-          <input type="text" onChange={() => { }} value={prev.users.map((el) => el.username) ?? ''} />
-          
-          <h1>{prev.dueDate.split('T')[0]}</h1>
-          <h1>{prev.startDate.split('T')[0]}</h1>
-        </div>
-      )) : <p>loading...</p> : !loading ? data.filter((prevFilter) => prevFilter.isIncoming == true).map((prev, i) => (
-        <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
-          <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
-          <input type="text" onChange={(el) => el.target.value = prev.creator.name} value={prev.creator.name ?? ''} />
-          <input type="text" onChange={() => { }} value={prev.users.map((el) => el.username) ?? ''} />
-
-          <h1>{prev.dueDate.split('T')[0]}</h1>
-          <h1>{prev.startDate.split('T')[0]}</h1>
-        </div>
-      )) : <p>loading...</p>} */}
       <div className="ulLiDataMessHeader">
-      {data?.map((prev, i) => (
-        <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
-          <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
-          <input type="text" onChange={(el) => el.target.value = prev.creator.name} value={prev.creator.name ?? ''} />
-          <input type="text" onChange={() => { }} value={prev.users.map((el) => el.username) ?? ''} />
-          {/* <p>{prev.priority}</p>
-          <p>{prev.status}</p> */}
-          <h1>{prev.dueDate.split('T')[0]}</h1>
-          <h1>{prev.startDate.split('T')[0]}</h1>
-        </div>
-      ))}
+        {data?.map((prev, i) => (
+          <div key={i} onClick={() => OpenModalCreate(prev)} className='itemsTasksContent' style={{ cursor: 'pointer' }}>
+            <input type="text" onChange={(el) => el.target.value = prev.subject} value={prev.subject ?? ''} />
+            <input type="text" onChange={(el) => el.target.value = prev.creator.name} value={prev.creator.name ?? ''} />
+            <input type="text" onChange={() => { }} value={prev.users.map((el) => el.username) ?? ''} />
+            <h1>{prev.dueDate.split('T')[0]}</h1>
+            <h1>{prev.startDate.split('T')[0]}</h1>
+          </div>
+        ))}
       </div>
     </div>
   );

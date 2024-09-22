@@ -43,3 +43,12 @@ export const useAuthStoreOperator = create((set) => ({
         set({ dataOperator: data })
     },
 }));
+
+// export const useStateModal = create((set) => ({
+//     modalState: false,
+//     setChengeState: (value) => set(() => ({ modalState: value })),
+// }));
+export const useStateModal = create((set) => ({
+    modalState: false,
+    setChengeState: (value) => set({ modalState: value }),
+  }));

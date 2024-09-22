@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -144,12 +144,14 @@ export default function WriteLetter() {
         setFetchingSearch(true);
         const token = localStorage.getItem('accessToken');
         try {
-            const response = await apiClient.get(`api/search/?${searchValue}`, {
+            const response = await apiClient.get(`api/companies/all?pagination.limit=15&pagination.page=1&name=${searchValue}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setDataSearch(response.data);  
+            console.log(response.data);
+            
+            setDataSearch(response.data.companies);  
         } catch (error) {
             console.error('Ошибка при выполнении запроса:', error);
             if (error.response.status === 401) {
@@ -244,9 +246,11 @@ export default function WriteLetter() {
                             }
                         >
                             {dataSearch.map((item) => (
-                                <Option key={item.id} value={item.value}>
-                                    {item.label}
+                                <Option key={item.id} value={item.id}>
+                                    {item.name}
                                 </Option>
+                                // console.log(item)
+                                
                             ))}
                         </Select>
                     }
