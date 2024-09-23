@@ -31,7 +31,7 @@ export default function Layout() {
                 setData(response.data)
                 sendDataOperator(response.data)
                 // console.log(response.data);
-                
+
                 setRestart(false)
             } else {
                 console.error('Access token is missing')
@@ -40,12 +40,12 @@ export default function Layout() {
             if (error.response.status === 401) {
                 let accessToken = await refreshAccessToken()
                 let booleanRes = Boolean(accessToken)
-                if (booleanRes){
+                if (booleanRes) {
                     setRestart(true)
                 }
                 console.log(error.response.status);
                 console.log(`Аксес токен обнавлен: ${accessToken}`);
-                
+
             }
         } finally {
             setLoading(false)
@@ -61,7 +61,7 @@ export default function Layout() {
         localStorage.removeItem('refreshToken')
         navigate(0)
     }
-    
+
     return (
         <div className="bigBox">
             <header style={{ width: openHeader ? '390px' : '150px' }}>
@@ -79,7 +79,7 @@ export default function Layout() {
                         <div className="person">
                             <BsPersonCircle />
                         </div>
-                        <div className="personInfo" style={{ width: openHeader ? '110px' : '0' , transition: 'all 1s liner'}}>
+                        <div className="personInfo" style={{ width: openHeader ? '110px' : '0', transition: 'all 1s liner' }}>
                             {loading ? (
                                 <h1>Loading...</h1>
                             ) : (
@@ -112,14 +112,17 @@ export default function Layout() {
                             <div className="iconMenu4"></div>
                             <span style={{ width: openHeader ? '120px' : '30px' }}>Журнал</span>
                         </NavLink>
-                         <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="menejment">
-                            <div className="iconMenu5"></div>
-                            <span style={{ width: openHeader ? '120px' : '30px' }}>Операторы</span>
-                        </NavLink>
-                        {/*<NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="otchot">
-                            <div className="iconMenu6"></div>
-                            <span style={{ width: openHeader ? '120px' : '30px' }}>Отчеты</span> 
-                        </NavLink>*/}
+                        {data?.role != 'Operator' && data?.role != null  &&
+                            <>
+                                <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="menejment">
+                                    <div className="iconMenu5"></div>
+                                    <span style={{ width: openHeader ? '120px' : '30px' }}>Операторы</span>
+                                </NavLink>
+                                <NavLink onClick={() => setOpenHeader(false)} style={{ width: openHeader ? '200px' : '30px' }} to="http://10.158.193.4:8081/">
+                                    <div className="iconMenu6"></div>
+                                    <span style={{ width: openHeader ? '120px' : '30px' }}>Отчеты</span>
+                                </NavLink>
+                            </>}
                     </nav>
                     <NavLink className="Exte" onClick={() => Exte()} style={{ width: openHeader ? '200px' : '30px' }} to="/">
                         <div></div>

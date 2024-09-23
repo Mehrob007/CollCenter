@@ -48,11 +48,11 @@ export default function AddContact({ call, number }) {
                 'Authorization': `Bearer ${token}`
             }
         })
-        setResUserFinde(res.data.contacts)
-        setContactId(res.data.contacts[0].id)
-        setFormDataContact(res.data.contacts[0])
-        console.log(res.data.contacts[0].id);
-        setFormData({
+        res.data?.contacts && setResUserFinde(res.data?.contacts)
+        res.data?.contacts[0]?.id && setContactId(res.data?.contacts[0].id)
+        res.data?.contacts[0] && setFormDataContact(res.data?.contacts[0])
+        // console.log(res.data.contacts[0].id);
+        res.data?.contacts[0] && setFormData({
             firstName: res.data.contacts[0].name || '',
             lastName: res.data.contacts[0].surname || '',
             middleName: res.data.contacts[0].middleName || '',

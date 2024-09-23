@@ -29,36 +29,36 @@ import AddContact from '../../components/layout/page/AddContact';
 import AddingOperator from '../../components/layout/page/pageDop/AddingOperator';
 
 export default function Router() {
-  
+
   return (
     // <Suspense fallback={<div>Loading...</div>}>
-      <Routes>
-        <Route path="/login" element={!localStorage.getItem('refreshToken') ? <Login /> : <Navigate to="/" replace />} />
-        <Route
-          path="/"
-          element={localStorage.getItem('refreshToken') ? <Layout /> : <Navigate to="/login" replace />}
-        >
-          <Route index element={<Coll />} />
-          <Route path='/' element={<Coll />} />
-          <Route path='/:numbers' element={<Coll />} />
-          <Route path="auto-redial" element={<AutoRedial />} />
-          <Route path="write-letter" element={<WriteLetter />} />
-          <Route path="write-letter/:Email" element={<WriteLetter />} />
-          <Route path="create-task" element={<CreateTask />} />
-          <Route path="create-task/:interactionIdContacts" element={<CreateTask />} />
-          <Route path="message" element={<Mess />} />
-          <Route path="task" element={<Task />} />
-          <Route path="task/:status" element={<Task />} />
-          <Route path="contacts" element={<Contacts />} />
-          <Route path="contacts/:poiskNumber" element={<Contacts />} />
-          <Route path="magazine" element={<Magazine />} />
-          <Route path="menejment" element={<Menejment />} />
-          <Route path="adding-operator" element={<AddingOperator />} />
-          {/* <Route path="otchot" element={<Otchot />} /> */}
-          <Route path="add-contacts" element={<AddContact />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <Routes>
+      <Route path="/login" element={!localStorage.getItem('refreshToken') ? <Login /> : <Navigate to="/" replace />} />
+      <Route
+        path="/"
+        element={localStorage.getItem('refreshToken') ? <Layout /> : <Navigate to="/login" replace />}
+      >
+        <Route index element={<Coll />} />
+        <Route path='/' element={<Coll />} />
+        <Route path='/:numbers' element={<Coll />} />
+        <Route path="auto-redial" element={<AutoRedial />} />
+        <Route path="write-letter" element={<WriteLetter />} />
+        <Route path="write-letter/:Email" element={<WriteLetter />} />
+        <Route path="create-task" element={<CreateTask />} />
+        <Route path="create-task/:interactionIdContacts" element={<CreateTask />} />
+        <Route path="message" element={<Mess />} />
+        <Route path="task" element={<Task />} />
+        <Route path="task/:status" element={<Task />} />
+        <Route path="contacts" element={<Contacts />} />
+        <Route path="contacts/:poiskNumber" element={<Contacts />} />
+        <Route path="magazine" element={<Magazine />} />
+        <Route path="menejment" element={<Menejment />} />
+        <Route path="adding-operator" element={<AddingOperator />} />
+        {/* <Route path="otchot" element={<Otchot />} /> */}
+        <Route path="add-contacts" element={<AddContact />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
     // </Suspense>
   );
 }
