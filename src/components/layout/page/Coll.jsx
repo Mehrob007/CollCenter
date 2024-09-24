@@ -43,7 +43,7 @@ export default function Coll() {
   const [open, setOpen] = useState(false);
   const [ua, setUA] = useState(null);
 
-  // const [namberIncoming, setNamberIncoming] = useState(null);
+  // const [namberIncoming, setNamberIncoming] = useState(gsessions?.remote_identity.display_name);
   // const [loading, setLoading] = useState();
   // const [data, setData] = useState();
   // const [loading2, setLoading2] = useState();
@@ -54,9 +54,8 @@ export default function Coll() {
   const { modalState, setChengeState } = useStateModal(state => ({
     modalState: state.modalState,
     setChengeState: state.setChengeState
-  }))
+  }))  
 
-  const { navigate } = useNavigate();
   useEffect(() => {
     let interval = null;
 
@@ -76,7 +75,7 @@ export default function Coll() {
     // Initialize the ringtone
     ringtoneRef.current = new Audio(Audeo);
     ringtoneRef.current.loop = true;
-  
+
     // Cleanup when the component is unmounted
     return () => {
       if (ringtoneRef.current) {
@@ -85,7 +84,7 @@ export default function Coll() {
       }
     };
   }, []);
-  
+
 
   const toggle = () => {
     setIsActive(!isActive);
@@ -222,6 +221,7 @@ export default function Coll() {
   }
 
   const accept = () => {
+    ringtoneRef.current.pause();
     gsessions.answer(stateConfig);
     setOpen(false);
     setChengeState(true)
@@ -233,6 +233,7 @@ export default function Coll() {
 
 
   const decline = () => {
+    ringtoneRef.current.pause();
     gsessions.terminate();
     setOpen(false);
   }
@@ -261,16 +262,16 @@ export default function Coll() {
         console.error('Access token is missing')
       }
     } catch (error) {
-      // if (error.response.status === 401) {
-      //   let accessToken = await refreshAccessToken()
-      //   let booleanRes = Boolean(accessToken)
-      //   if (booleanRes) {
-      //     navigate(0)
-      //   }
-      //   console.log(error.response.status);
-      //   console.log(`Аксес токен обнавлен: ${accessToken}`);
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
 
-      // }
+      }
     }
 
     try {
@@ -288,24 +289,22 @@ export default function Coll() {
         console.error('Access token is missing')
       }
     } catch (error) {
-      // if (error.response.status === 401) {
-      //   let accessToken = await refreshAccessToken()
-      //   let booleanRes = Boolean(accessToken)
-      //   if (booleanRes) {
-      //     navigate(0)
-      //   }
-      //   console.log(error.response.status);
-      //   console.log(`Аксес токен обнавлен: ${accessToken}`);
-      // }
-    } finally {
-      // setLoading2(false)
+      if (error.response.status === 401) {
+        let accessToken = await refreshAccessToken()
+        let booleanRes = Boolean(accessToken)
+        if (booleanRes) {
+          navigate(0)
+        }
+        console.log(error.response.status);
+        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      }
     }
     JsSIP.debug.enable('JsSIP:*');
     const socket = new JsSIP.WebSocketInterface('wss://10.158.193.4:8089/ws');
     const configuration = {
       sockets: [socket],
       uri: `${accountData}@10.158.193.4`,
-      password: extensionSecret
+      password:  extensionSecret
     };
     setStateConfig(setStateConfig)
     const ua = new JsSIP.UA(configuration);
@@ -355,14 +354,10 @@ export default function Coll() {
       setGsessions(session);
 
       if (session.direction === "incoming") {
-        setOpen(true);
-        setValueInput2(session.remoteIdentity.uri.user);
-
-
         ringtoneRef.current.play().catch(err => {
           console.error('Error playing ringtone:', err);
         });
-
+        setOpen(true);
         session.on("accepted", function (e) {
           console.log('Call accepted:', e);
           ringtoneRef.current.pause();
@@ -427,33 +422,34 @@ export default function Coll() {
       <Modal
         open={open}
         title={gsessions?.remote_identity.display_name}
-        footer={() => (
-          <>
-            <div className='btnCallinBack'>
-              <Button onClick={accept} style={{ background: '#0CD939' }} className='callinBack'>
-                <img src={iconCollBtn} alt="iconCollBtn" />
-                <span>Принять</span>
-              </Button>
-              <Button onClick={decline} style={{ background: '#D90C0C', margin: 0 }} className='callinBack'>
-                <img src={callout} alt="iconCollBtn" />
-                <span>Отклонить</span>
-              </Button>
-            </div>
-            {/* <CancelBtn />
-                        <OkBtn /> */}
-          </>
-        )}
+        footer={() => 
+       { 
+        setValueInput2(`${gsessions?.remote_identity.display_name}`)
+        return  (
+            <>
+              <div className='btnCallinBack'>
+                <Button onClick={accept} style={{ background: '#0CD939' }} className='callinBack'>
+                  <img src={iconCollBtn} alt="iconCollBtn" />
+                  <span>Принять</span>
+                </Button>
+                <Button onClick={decline} style={{ background: '#D90C0C', margin: 0 }} className='callinBack'>
+                  <img src={callout} alt="iconCollBtn" />
+                  <span>Отклонить</span>
+                </Button>
+              </div>
+              {/* <CancelBtn />
+                          <OkBtn /> */}
+            </>
+          )
+        }
+      }
       >
         <p>Вызов...</p>
       </Modal>
 
       <div className='bgMain-components-1'></div>
-      {/* <Link to='auto-redial' className="divAutoColl">
-        <button className='btnAutoColl'>Автодозвон</button>
-      </Link> */}
-      {modalState && valueInput2 != 'null' ? <div>
-        <AddContact call={true} number={valueInput2 && valueInput2} />
-        {/* <button style={{ cursor: 'pointer' }} onClick={() => setAddContactCall(false)}>Закрыть</button> */}
+      {modalState ? <div>
+        <AddContact call={true} number={valueInput2} />
       </div> :
         <div className='auto-call'>
           {/* <Link to='auto-redial' className="divAutoColl">
