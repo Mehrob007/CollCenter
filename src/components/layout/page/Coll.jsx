@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import JsSIP from 'jssip';
 import iconCollBtn from '../../../assets/icon/iconCollBtn.svg';
 import callout from '../../../assets/icon/callout.svg'
@@ -10,7 +10,8 @@ import { jwtDecode } from 'jwt-decode';
 import apiClient from '../../../utils/api';
 import AddContact from './AddContact';
 import { SlCallOut } from 'react-icons/sl';
-import { useAuthStore, useStateModal } from '../../store/useAuthStore';
+import { useStateModal } from '../../store/useAuthStore';
+import Audeo from '../../../../public/rington/ringtone.mp3';
 // import apiClient from '../../../utils/api';
 // import axios from 'axios';
 // import { jwtDecode } from 'jwt-decode';
@@ -42,10 +43,11 @@ export default function Coll() {
   const [open, setOpen] = useState(false);
   const [ua, setUA] = useState(null);
 
-  const [loading, setLoading] = useState();
-  const [data, setData] = useState();
-  const [loading2, setLoading2] = useState();
-  const [data2ExtensionSecret, setData2] = useState();
+  // const [namberIncoming, setNamberIncoming] = useState(null);
+  // const [loading, setLoading] = useState();
+  // const [data, setData] = useState();
+  // const [loading2, setLoading2] = useState();
+  // const [data2ExtensionSecret, setData2] = useState();
   // const [addContactCall, setAddContactCall] = useState(false)
 
   const [stateConfig, setStateConfig] = useState({})
@@ -68,6 +70,22 @@ export default function Coll() {
 
     return () => clearInterval(interval);
   }, [isActive, seconds]);
+  const ringtoneRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize the ringtone
+    ringtoneRef.current = new Audio(Audeo);
+    ringtoneRef.current.loop = true;
+  
+    // Cleanup when the component is unmounted
+    return () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.src = ''; // Stop and release the audio resource
+      }
+    };
+  }, []);
+  
 
   const toggle = () => {
     setIsActive(!isActive);
@@ -206,12 +224,11 @@ export default function Coll() {
   const accept = () => {
     gsessions.answer(stateConfig);
     setOpen(false);
+    setChengeState(true)
   }
   const perenCall = () => {
     gsessions.refer('sip:' + valueInput2 + '@10.158.193.4');
-    console.log('====================================');
     console.log(valueInput2);
-    console.log('====================================');
   }
 
 
@@ -244,16 +261,16 @@ export default function Coll() {
         console.error('Access token is missing')
       }
     } catch (error) {
-      if (error.response.status === 401) {
-        let accessToken = await refreshAccessToken()
-        let booleanRes = Boolean(accessToken)
-        if (booleanRes) {
-          navigate(0)
-        }
-        console.log(error.response.status);
-        console.log(`Аксес токен обнавлен: ${accessToken}`);
+      // if (error.response.status === 401) {
+      //   let accessToken = await refreshAccessToken()
+      //   let booleanRes = Boolean(accessToken)
+      //   if (booleanRes) {
+      //     navigate(0)
+      //   }
+      //   console.log(error.response.status);
+      //   console.log(`Аксес токен обнавлен: ${accessToken}`);
 
-      }
+      // }
     }
 
     try {
@@ -271,15 +288,15 @@ export default function Coll() {
         console.error('Access token is missing')
       }
     } catch (error) {
-      if (error.response.status === 401) {
-        let accessToken = await refreshAccessToken()
-        let booleanRes = Boolean(accessToken)
-        if (booleanRes) {
-          navigate(0)
-        }
-        console.log(error.response.status);
-        console.log(`Аксес токен обнавлен: ${accessToken}`);
-      }
+      // if (error.response.status === 401) {
+      //   let accessToken = await refreshAccessToken()
+      //   let booleanRes = Boolean(accessToken)
+      //   if (booleanRes) {
+      //     navigate(0)
+      //   }
+      //   console.log(error.response.status);
+      //   console.log(`Аксес токен обнавлен: ${accessToken}`);
+      // }
     } finally {
       // setLoading2(false)
     }
@@ -293,37 +310,90 @@ export default function Coll() {
     setStateConfig(setStateConfig)
     const ua = new JsSIP.UA(configuration);
 
+    // ua.on("newRTCSession", function (data) {
+    //   var session = data.session;
+    //   setGsessions(session);
+
+    //   if (session.direction === "incoming") {
+    //     setOpen(true);
+    //     setValueInput2(session.remoteIdentity.uri.user)
+    //     session.on("accepted", function (e) {
+    //       console.log('Call accepted:', e);
+    //       audioRef.current.srcObject = e.stream;
+    //       audioRef.current.play();
+    //     });
+
+    //     session.on("confirmed", function () {
+    //       console.log('Call confirmed');
+    //       audioRef.current.play();
+    //     });
+
+    //     session.on("ended", function () {
+    //       console.log('Call ended');
+    //       audioRef.current.srcObject = null; // Очистка источника аудио
+    //       setOpen(false); // Закрытие интерфейса
+    //     });
+
+    //     session.on("failed", function () {
+    //       console.error('Call failed');
+    //       setOpen(false); // Закрытие интерфейса при неудаче
+    //     });
+
+    //     session.on("peerconnection", () => {
+    //       session.connection.addEventListener("track", (e) => {
+    //         console.log('Adding audio track');
+    //         audioRef.current.srcObject = e.streams[0];
+    //         audioRef.current.play();
+    //       });
+    //     });
+    //   }
+    // });
+
+
     ua.on("newRTCSession", function (data) {
       var session = data.session;
       setGsessions(session);
 
       if (session.direction === "incoming") {
-        // incoming call here
         setOpen(true);
+        setValueInput2(session.remoteIdentity.uri.user);
+
+
+        ringtoneRef.current.play().catch(err => {
+          console.error('Error playing ringtone:', err);
+        });
+
         session.on("accepted", function (e) {
-          console.log(e);
+          console.log('Call accepted:', e);
+          ringtoneRef.current.pause();
           audioRef.current.srcObject = e.stream;
           audioRef.current.play();
         });
+
         session.on("confirmed", function () {
+          console.log('Call confirmed');
           audioRef.current.play();
         });
+
         session.on("ended", function () {
-          // the call has ended
+          console.log('Call ended');
+          audioRef.current.srcObject = null; // Очистка источника аудио
+          setOpen(false); // Закрытие интерфейса
         });
+
         session.on("failed", function () {
-          // unable to establish the callx
+          console.error('Call failed');
+          setOpen(false); // Закрытие интерфейса при неудаче
         });
+
         session.on("peerconnection", () => {
           session.connection.addEventListener("track", (e) => {
-            console.log('adding audio track')
-            console.log(e)
-            audioRef.current.srcObject = e.streams[0]
-            audioRef.current.play()
-          })
+            console.log('Adding audio track');
+            audioRef.current.srcObject = e.streams[0];
+            audioRef.current.play();
+          });
         });
       }
-
     });
 
 
@@ -381,8 +451,8 @@ export default function Coll() {
       {/* <Link to='auto-redial' className="divAutoColl">
         <button className='btnAutoColl'>Автодозвон</button>
       </Link> */}
-      {modalState ? <div>
-        <AddContact call={true} number={valueInput2} />
+      {modalState && valueInput2 != 'null' ? <div>
+        <AddContact call={true} number={valueInput2 && valueInput2} />
         {/* <button style={{ cursor: 'pointer' }} onClick={() => setAddContactCall(false)}>Закрыть</button> */}
       </div> :
         <div className='auto-call'>
