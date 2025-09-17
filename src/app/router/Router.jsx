@@ -33,10 +33,10 @@ export default function Router() {
   return (
     // <Suspense fallback={<div>Loading...</div>}>
     <Routes>
-      <Route path="/login" element={!localStorage.getItem('refreshToken') ? <Login /> : <Navigate to="/" replace />} />
+      <Route path="/login" element={localStorage.getItem('refreshToken') ? <Login /> : <Navigate to="/" replace />} />
       <Route
         path="/"
-        element={localStorage.getItem('refreshToken') ? <Layout /> : <Navigate to="/login" replace />}
+        element={!localStorage.getItem('refreshToken') ? <Layout /> : <Navigate to="/login" replace />}
       >
         <Route index element={<Coll />} />
         <Route path='/' element={<Coll />} />
