@@ -12,6 +12,7 @@ import AddContact from "./AddContact";
 import { SlCallOut } from "react-icons/sl";
 import { useStateModal } from "../../store/useAuthStore";
 import Audeo from "../../../../public/rington/ringtone.mp3";
+import { RiRadioButtonLine } from "react-icons/ri";
 // import apiClient from '../../../utils/api';
 // import axios from 'axios';
 // import { jwtDecode } from 'jwt-decode';
@@ -25,6 +26,7 @@ export default function Coll() {
   const inputRef = useRef(null);
   const audioRef = useRef(null);
   const navigate = useNavigate();
+  const [online, setOnline] = useState(false);
   useEffect(() => {
     refreshAccessToken();
     const performAction = () => {
@@ -73,15 +75,13 @@ export default function Coll() {
   const ringtoneRef = useRef(null);
 
   useEffect(() => {
-    // Initialize the ringtone
     ringtoneRef.current = new Audio(Audeo);
     ringtoneRef.current.loop = true;
 
-    // Cleanup when the component is unmounted
     return () => {
       if (ringtoneRef.current) {
         ringtoneRef.current.pause();
-        ringtoneRef.current.src = ""; // Stop and release the audio resource
+        ringtoneRef.current.src = "";
       }
     };
   }, []);
@@ -239,6 +239,8 @@ export default function Coll() {
     let accountData = null;
     let extensionSecret = null;
 
+    JsSIP.debug.enable("JsSIP:*");
+
     try {
       const token = localStorage.getItem("accessToken");
       const decodedHeader = jwtDecode(token);
@@ -298,7 +300,7 @@ export default function Coll() {
         console.log(`Аксес токен обнавлен: ${accessToken}`);
       }
     }
-    JsSIP.debug.enable("JsSIP:*");
+
     const socket = new JsSIP.WebSocketInterface("wss://10.158.193.4:8089/ws");
     const configuration = {
       sockets: [socket],
@@ -308,49 +310,19 @@ export default function Coll() {
     setStateConfig(setStateConfig);
     const ua = new JsSIP.UA(configuration);
 
-    // ua.on("newRTCSession", function (data) {
-    //   var session = data.session;
-    //   setGsessions(session);
-
-    //   if (session.direction === "incoming") {
-    //     setOpen(true);
-    //     setValueInput2(session.remoteIdentity.uri.user)
-    //     session.on("accepted", function (e) {
-    //       console.log('Call accepted:', e);
-    //       audioRef.current.srcObject = e.stream;
-    //       audioRef.current.play();
-    //     });
-
-    //     session.on("confirmed", function () {
-    //       console.log('Call confirmed');
-    //       audioRef.current.play();
-    //     });
-
-    //     session.on("ended", function () {
-    //       console.log('Call ended');
-    //       audioRef.current.srcObject = null; // Очистка источника аудио
-    //       setOpen(false); // Закрытие интерфейса
-    //     });
-
-    //     session.on("failed", function () {
-    //       console.error('Call failed');
-    //       setOpen(false); // Закрытие интерфейса при неудаче
-    //     });
-
-    //     session.on("peerconnection", () => {
-    //       session.connection.addEventListener("track", (e) => {
-    //         console.log('Adding audio track');
-    //         audioRef.current.srcObject = e.streams[0];
-    //         audioRef.current.play();
-    //       });
-    //     });
-    //   }
-    // });
 
     ua.on("newRTCSession", function (data) {
       var session = data.session;
-      setGsessions(session);
+      if (gsessions && gsessions.isEstablished()) {
+        session.terminate({
+          status_code: 486,
+          reason_phrase: "Busy Here",
+        });
+        console.log("Новый звонок отклонен: занято");
+        return;
+      }
 
+      setGsessions(session);
       if (session.direction === "incoming") {
         ringtoneRef.current.play().catch((err) => {
           console.error("Error playing ringtone:", err);
@@ -388,10 +360,9 @@ export default function Coll() {
         });
       }
     });
-
     setUA(ua);
-
     ua.start();
+    setOnline(true);
   }
 
   const getData = async () => {
@@ -404,6 +375,18 @@ export default function Coll() {
     }
   };
 
+  const toggleOnline = () => {
+    if (!ua) return;
+    if (online) {
+      ua.stop();
+      console.log("UA went offline");
+    } else {
+      ua.start();
+      console.log("UA went online");
+    }
+    setOnline(!online);
+  };
+
   useEffect(() => {
     getData();
   }, []);
@@ -413,6 +396,9 @@ export default function Coll() {
       handleCall(numbers);
     }
   }, [numbers]);
+
+  console.log("online", online);
+
   return (
     <div className="CollBox">
       <Modal
@@ -517,7 +503,15 @@ export default function Coll() {
           <button onClick={() => funNanbersBtn("#")} className="number">
             #
           </button>
-          <span></span>
+          <button
+            onClick={toggleOnline}
+            style={{
+              fontSize: 30,
+              color: online ? "rgb(12, 217, 49)" : "rgb(170, 170, 170)",
+            }}
+          >
+            <RiRadioButtonLine />
+          </button>
           {!calling ? (
             <button
               onClick={() => handleCall(valueInput)}
